@@ -87,6 +87,13 @@ func MakeRSM(servers []*labrpc.ClientEnd, me int, persister *tester.Persister, m
 			} else if msg.SnapshotValid {
 				// install snapshot msg.Snapshot to rsm.sm
 				rsm.sm.Restore(msg.Snapshot)
+			} else if msg.SteppedDown {
+				rsm.mu.Lock()
+				ch, ok := rsm.opChs[msg.Command.(Op).Id]
+				rsm.mu.Unlock()
+				if ok {
+					ch <- nil
+				}
 			}
 		}
 	}()

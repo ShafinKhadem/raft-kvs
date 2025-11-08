@@ -541,6 +541,12 @@ func (rf *Raft) becomeFollower(term int) {
 	rf.currentTerm = term
 	rf.votedFor = -1
 	rf.persist()
+	for i := rf.commitIndex + 1; i < len(rf.log); i++ {
+		rf.applyCh <- raftapi.ApplyMsg{
+			SteppedDown: true,
+			Command:     rf.log[i].Command,
+		}
+	}
 }
 
 // Helper methods
