@@ -37,6 +37,6 @@ type ApplyMsg struct {
 	SnapshotTerm  int
 	SnapshotIndex int
 
-	// For SteppedDown messages
-	SteppedDown bool
+	// For Aborted messages
+	Aborted bool
 }
