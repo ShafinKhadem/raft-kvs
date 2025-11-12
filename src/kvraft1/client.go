@@ -1,6 +1,8 @@
 package kvraft
 
 import (
+	"time"
+
 	"6.5840/kvsrv1/rpc"
 	kvtest "6.5840/kvtest1"
 	tester "6.5840/tester1"
@@ -33,14 +35,21 @@ func (ck *Clerk) Get(key string) (string, rpc.Tversion, rpc.Err) {
 	for {
 		for _, srv := range ck.servers {
 			reply := rpc.GetReply{}
-			ok := ck.clnt.Call(srv, "KVServer.Get", &args, &reply)
-			if ok {
-				if reply.Err == rpc.OK {
-					return reply.Value, reply.Version, rpc.OK
-				} else if reply.Err == rpc.ErrNoKey {
-					return "", 0, rpc.ErrNoKey
+			ch := make(chan bool, 1)
+			go func() {
+				ch <- ck.clnt.Call(srv, "KVServer.Get", &args, &reply)
+			}()
+			select {
+			case ok := <-ch:
+				if ok {
+					if reply.Err == rpc.OK {
+						return reply.Value, reply.Version, rpc.OK
+					} else if reply.Err == rpc.ErrNoKey {
+						return "", 0, rpc.ErrNoKey
+					}
+					// If ErrWrongLeader or other errors, try next server
 				}
-				// If ErrWrongLeader or other errors, try next server
+			case <-time.After(10 * time.Second):
 			}
 			// If call failed (network error), try next server
 		}
@@ -71,18 +80,26 @@ func (ck *Clerk) Put(key string, value string, version rpc.Tversion) rpc.Err {
 	for {
 		for _, srv := range ck.servers {
 			reply := rpc.PutReply{}
-			ok := ck.clnt.Call(srv, "KVServer.Put", &args, &reply)
-			if ok {
-				if reply.Err == rpc.OK {
-					return rpc.OK
-				} else if reply.Err == rpc.ErrVersion {
-					if firstAttempt {
-						return rpc.ErrVersion
-					} else {
-						return rpc.ErrMaybe
+			ch := make(chan bool, 1)
+			go func() {
+				ch <- ck.clnt.Call(srv, "KVServer.Put", &args, &reply)
+			}()
+			select {
+			case ok := <-ch:
+				if ok {
+					if reply.Err == rpc.OK {
+						return rpc.OK
+					} else if reply.Err == rpc.ErrVersion {
+						if firstAttempt {
+							return rpc.ErrVersion
+						} else {
+							return rpc.ErrMaybe
+						}
 					}
+					// If ErrWrongLeader or other errors, try next server
 				}
-				// If ErrWrongLeader or other errors, try next server
+			case <-time.After(10 * time.Second):
+				return rpc.ErrMaybe
 			}
 			// If call failed (network error), try next server
 		}
