@@ -1,25 +1,26 @@
 package rsm
 
 import (
+	"math/rand/v2"
 	"sync"
 
 	"6.5840/kvsrv1/rpc"
 	"6.5840/labrpc"
-	"6.5840/raft1"
+	raft "6.5840/raft1"
 	"6.5840/raftapi"
-	"6.5840/tester1"
-
+	tester "6.5840/tester1"
 )
 
 var useRaftStateMachine bool // to plug in another raft besided raft1
-
 
 type Op struct {
 	// Your definitions here.
 	// Field names must start with capital letters,
 	// otherwise RPC will break.
+	Id  int64
+	Me  int
+	Req any
 }
-
 
 // A server (i.e., ../server.go) that wants to replicate itself calls
 // MakeRSM and must implement the StateMachine interface.  This
@@ -41,6 +42,7 @@ type RSM struct {
 	maxraftstate int // snapshot if log grows this big
 	sm           StateMachine
 	// Your definitions here.
+	opChs map[int64]chan any
 }
 
 // servers[] contains the ports of the set of
@@ -64,17 +66,44 @@ func MakeRSM(servers []*labrpc.ClientEnd, me int, persister *tester.Persister, m
 		maxraftstate: maxraftstate,
 		applyCh:      make(chan raftapi.ApplyMsg),
 		sm:           sm,
+		opChs:        make(map[int64]chan any),
 	}
 	if !useRaftStateMachine {
 		rsm.rf = raft.Make(servers, me, persister, rsm.applyCh)
 	}
+
+	// reader goroutine
+	go func() {
+		for msg := range rsm.applyCh {
+			if msg.CommandValid {
+				// apply msg.Command to rsm.sm
+				opResult := rsm.sm.DoOp(msg.Command.(Op).Req)
+				rsm.mu.Lock()
+				ch, ok := rsm.opChs[msg.Command.(Op).Id]
+				rsm.mu.Unlock()
+				if ok {
+					ch <- opResult
+				}
+			} else if msg.SnapshotValid {
+				// install snapshot msg.Snapshot to rsm.sm
+				rsm.sm.Restore(msg.Snapshot)
+			} else if msg.Aborted {
+				rsm.mu.Lock()
+				ch, ok := rsm.opChs[msg.Command.(Op).Id]
+				rsm.mu.Unlock()
+				if ok {
+					ch <- nil
+				}
+			}
+		}
+	}()
+
 	return rsm
 }
 
 func (rsm *RSM) Raft() raftapi.Raft {
 	return rsm.rf
 }
-
 
 // Submit a command to Raft, and wait for it to be committed.  It
 // should return ErrWrongLeader if client should find new leader and
@@ -86,5 +115,31 @@ func (rsm *RSM) Submit(req any) (rpc.Err, any) {
 	// is the argument to Submit and id is a unique id for the op.
 
 	// your code here
+	rsm.mu.Lock()
+	id := rand.Int64()
+	ch := make(chan any)
+	rsm.opChs[id] = ch
+	rsm.mu.Unlock()
+
+	// Clear the opCh when done
+	defer func() {
+		rsm.mu.Lock()
+		delete(rsm.opChs, id)
+		rsm.mu.Unlock()
+	}()
+
+	op := Op{Me: rsm.me, Id: id, Req: req}
+	_, termBeforeOp, isLeader := rsm.rf.Start(op)
+	if !isLeader {
+		return rpc.ErrWrongLeader, nil
+	}
+
+	opResult := <-ch
+
+	termAfterOp, isLeader := rsm.rf.GetState()
+	if isLeader && termBeforeOp == termAfterOp {
+		return rpc.OK, opResult
+	}
+
 	return rpc.ErrWrongLeader, nil // i'm dead, try another server.
 }

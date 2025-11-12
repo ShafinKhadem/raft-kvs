@@ -36,4 +36,7 @@ type ApplyMsg struct {
 	Snapshot      []byte
 	SnapshotTerm  int
 	SnapshotIndex int
+
+	// For Aborted messages
+	Aborted bool
 }

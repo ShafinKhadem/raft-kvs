@@ -8,12 +8,14 @@ package raft
 
 import (
 	//	"bytes"
+	"bytes"
 	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	//	"6.5840/labgob"
+	"6.5840/labgob"
 	"6.5840/labrpc"
 	"6.5840/raftapi"
 	tester "6.5840/tester1"
@@ -50,7 +52,7 @@ type Raft struct {
 	lastHeartbeatSent time.Time   // last time sent heartbeat (for Leader)
 
 	applyCh   chan raftapi.ApplyMsg // channel for applying logs
-	applyCond *sync.Cond             // condition variable for efficient log application
+	applyCond *sync.Cond            // condition variable for efficient log application
 
 }
 
@@ -94,13 +96,13 @@ func (rf *Raft) sendAppendEntries(server int, args *AppendEntriesArgs, reply *Ap
 // (or nil if there's not yet a snapshot).
 func (rf *Raft) persist() {
 	// Your code here (3C).
-	// Example:
-	// w := new(bytes.Buffer)
-	// e := labgob.NewEncoder(w)
-	// e.Encode(rf.xxx)
-	// e.Encode(rf.yyy)
-	// raftstate := w.Bytes()
-	// rf.persister.Save(raftstate, nil)
+	w := new(bytes.Buffer)
+	e := labgob.NewEncoder(w)
+	e.Encode(rf.currentTerm)
+	e.Encode(rf.votedFor)
+	e.Encode(rf.log)
+	raftstate := w.Bytes()
+	rf.persister.Save(raftstate, nil)
 }
 
 // restore previously persisted state.
@@ -109,18 +111,20 @@ func (rf *Raft) readPersist(data []byte) {
 		return
 	}
 	// Your code here (3C).
-	// Example:
-	// r := bytes.NewBuffer(data)
-	// d := labgob.NewDecoder(r)
-	// var xxx
-	// var yyy
-	// if d.Decode(&xxx) != nil ||
-	//    d.Decode(&yyy) != nil {
-	//   error...
-	// } else {
-	//   rf.xxx = xxx
-	//   rf.yyy = yyy
-	// }
+	r := bytes.NewBuffer(data)
+	d := labgob.NewDecoder(r)
+	var currentTerm int
+	var votedFor int
+	var log []LogEntry
+	if d.Decode(&currentTerm) != nil ||
+		d.Decode(&votedFor) != nil ||
+		d.Decode(&log) != nil {
+		panic("failed to read persisted state")
+	} else {
+		rf.currentTerm = currentTerm
+		rf.votedFor = votedFor
+		rf.log = log
+	}
 }
 
 // how many bytes in Raft's persisted log?
@@ -269,6 +273,15 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 	return index, term, true
 }
 
+func (rf *Raft) abortPendingCommands() {
+	for i := rf.lastApplied + 1; i < len(rf.log); i++ {
+		rf.applyCh <- raftapi.ApplyMsg{
+			Aborted: true,
+			Command: rf.log[i].Command,
+		}
+	}
+}
+
 // the tester doesn't halt goroutines created by Raft after each test,
 // but it does call the Kill() method. your code can use killed() to
 // check whether Kill() has been called. the use of atomic avoids the
@@ -281,6 +294,10 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 func (rf *Raft) Kill() {
 	atomic.StoreInt32(&rf.dead, 1)
 	// Your code here, if desired.
+	// fmt.Println("Raft server", rf.me, "killed")
+	rf.mu.Lock()
+	defer rf.mu.Unlock()
+	rf.abortPendingCommands()
 }
 
 func (rf *Raft) killed() bool {
@@ -386,7 +403,13 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	insertIdx := args.PrevLogIndex + 1
 	if insertIdx < len(rf.log) {
 		// Truncate any conflicting entries
-		rf.log = append([]LogEntry{}, rf.log[:insertIdx]...)
+		for i := insertIdx; i < len(rf.log); i++ {
+			rf.applyCh <- raftapi.ApplyMsg{
+				Aborted: true,
+				Command: rf.log[i].Command,
+			}
+		}
+		rf.log = rf.log[:insertIdx]
 	}
 	if len(args.Entries) > 0 {
 		rf.log = append(rf.log, args.Entries...)
