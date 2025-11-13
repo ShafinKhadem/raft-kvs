@@ -92,7 +92,7 @@ func MakeRSM(servers []*labrpc.ClientEnd, me int, persister *tester.Persister, m
 				ch, ok := rsm.opChs[msg.Command.(Op).Id]
 				rsm.mu.Unlock()
 				if ok {
-					ch <- nil
+					ch <- "aborted"
 				}
 			}
 		}
@@ -135,6 +135,10 @@ func (rsm *RSM) Submit(req any) (rpc.Err, any) {
 	}
 
 	opResult := <-ch
+
+	if opResult == "aborted" {
+		return rpc.ErrWrongLeader, nil // i'm dead, try another server.
+	}
 
 	termAfterOp, isLeader := rsm.rf.GetState()
 	if isLeader && termBeforeOp == termAfterOp {
