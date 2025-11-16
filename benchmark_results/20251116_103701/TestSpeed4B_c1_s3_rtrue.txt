@@ -1,0 +1,6 @@
+=== RUN   TestSpeed4B
+Test: one client (4B speed) (reliable network)...
+  ... Passed --  time  1.0s #peers 3 #RPCs 11680 #Ops    0
+--- PASS: TestSpeed4B (1.05s)
+PASS
+ok  	6.5840/kvraft1	1.231s
