@@ -44,10 +44,12 @@ class BenchmarkPlotter:
         self.output_dir.mkdir(exist_ok=True)
         
         self.throughput_data = []
+        self.resilience_data = []
         self.load_data()
     
     def load_data(self):
         """Load all JSON result files"""
+        # Load throughput data
         json_files = glob.glob(str(self.results_dir / "throughput_*.json"))
         
         for json_file in json_files:
@@ -58,7 +60,19 @@ class BenchmarkPlotter:
             except Exception as e:
                 print(f"Warning: Unable to load {json_file}: {e}")
         
-        print(f"Loaded {len(self.throughput_data)} benchmark results")
+        # Load resilience data
+        resilience_files = glob.glob(str(self.results_dir / "resilience_*.json"))
+        
+        for json_file in resilience_files:
+            try:
+                with open(json_file, 'r') as f:
+                    data = json.load(f)
+                    self.resilience_data.append(data)
+            except Exception as e:
+                print(f"Warning: Unable to load {json_file}: {e}")
+        
+        print(f"Loaded {len(self.throughput_data)} throughput benchmark results")
+        print(f"Loaded {len(self.resilience_data)} resilience benchmark results")
     
     def plot_throughput_vs_clients(self):
         """Plot throughput vs number of clients"""
@@ -350,7 +364,8 @@ class BenchmarkPlotter:
             
             f.write(f"Test Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write(f"Results Directory: {self.results_dir}\n")
-            f.write(f"Total Tests: {len(self.throughput_data)}\n\n")
+            f.write(f"Total Throughput Tests: {len(self.throughput_data)}\n")
+            f.write(f"Total Resilience Tests: {len(self.resilience_data)}\n\n")
             
             if self.throughput_data:
                 # Calculate statistics
@@ -398,22 +413,376 @@ class BenchmarkPlotter:
                 f.write(f"  Configuration: {best_latency['num_clients']} clients, "
                        f"{best_latency['num_servers']} servers\n\n")
             
+            # Resilience test summary
+            if self.resilience_data:
+                f.write("-" * 80 + "\n")
+                f.write("Resilience Test Summary\n")
+                f.write("-" * 80 + "\n")
+                
+                throughputs_res = [d['throughput_ops_per_sec'] for d in self.resilience_data]
+                latencies_res = [d.get('avg_latency_ms', 0) for d in self.resilience_data]
+                recovery_times = [d.get('avg_failure_recovery_ms', 0) for d in self.resilience_data]
+                
+                f.write(f"Throughput Range: {min(throughputs_res):.2f} - {max(throughputs_res):.2f} ops/sec\n")
+                f.write(f"Average Throughput: {np.mean(throughputs_res):.2f} ops/sec\n")
+                f.write(f"Average Latency: {np.mean(latencies_res):.2f} ms\n")
+                f.write(f"Average Recovery Time: {np.mean(recovery_times):.2f} ms\n\n")
+                
+                f.write("-" * 80 + "\n")
+                f.write("Resilience Test Details\n")
+                f.write("-" * 80 + "\n")
+                f.write(f"{'Clients':<8} {'Servers':<8} {'Failure':<12} {'Rate':<8} "
+                       f"{'Throughput':<15} {'P95 Lat':<10} {'Recovery':<10}\n")
+                f.write("-" * 80 + "\n")
+                
+                for d in sorted(self.resilience_data, 
+                               key=lambda x: (x['failure_type'], x['failure_rate_per_min'])):
+                    f.write(f"{d['num_clients']:<8} {d['num_servers']:<8} "
+                           f"{d['failure_type']:<12} {d['failure_rate_per_min']:<8} "
+                           f"{d['throughput_ops_per_sec']:>10.2f} ops/s "
+                           f"{d.get('p95_latency_ms', 0):>6.2f} ms "
+                           f"{d.get('avg_failure_recovery_ms', 0):>6.2f} ms\n")
+                
+                f.write("\n")
+            
             f.write("=" * 80 + "\n")
         
         print(f"✓ Generated summary report: {report_file}")
+    
+    def plot_resilience_throughput_comparison(self):
+        """Plot resilience: throughput comparison across failure types"""
+        if not self.resilience_data:
+            print("Warning: No resilience data found")
+            return
+        
+        # Group by failure type
+        data_by_type = {}
+        for d in self.resilience_data:
+            if d['num_clients'] == 5 and d['num_servers'] == 5:
+                ftype = d['failure_type']
+                if ftype not in data_by_type:
+                    data_by_type[ftype] = []
+                data_by_type[ftype].append(d)
+        
+        fig, ax = plt.subplots(figsize=(10, 6))
+        
+        for ftype in sorted(data_by_type.keys()):
+            data_list = sorted(data_by_type[ftype], key=lambda x: x['failure_rate_per_min'])
+            rates = [d['failure_rate_per_min'] for d in data_list]
+            throughput = [d['throughput_ops_per_sec'] for d in data_list]
+            
+            ax.plot(rates, throughput, marker='o', linewidth=2, markersize=8, 
+                   label=f'{ftype.capitalize()} Failures')
+        
+        ax.set_xlabel('Failure Rate (failures/min)', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Throughput (ops/sec)', fontsize=12, fontweight='bold')
+        ax.set_title('Resilience: Throughput vs Failure Rate', fontsize=14, fontweight='bold', pad=20)
+        ax.grid(True, alpha=0.3, linestyle='--')
+        ax.legend(fontsize=10, framealpha=0.9)
+        
+        plt.tight_layout()
+        output_file = self.output_dir / "resilience_throughput.png"
+        plt.savefig(output_file, bbox_inches='tight')
+        print(f"✓ Generated: {output_file}")
+        plt.close()
+    
+    def plot_resilience_latency_comparison(self):
+        """Plot resilience: latency comparison across failure types"""
+        if not self.resilience_data:
+            return
+        
+        # Group by failure type
+        data_by_type = {}
+        for d in self.resilience_data:
+            if d['num_clients'] == 5 and d['num_servers'] == 5:
+                ftype = d['failure_type']
+                if ftype not in data_by_type:
+                    data_by_type[ftype] = []
+                data_by_type[ftype].append(d)
+        
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+        
+        # P95 Latency
+        for ftype in sorted(data_by_type.keys()):
+            data_list = sorted(data_by_type[ftype], key=lambda x: x['failure_rate_per_min'])
+            rates = [d['failure_rate_per_min'] for d in data_list]
+            p95 = [d['p95_latency_ms'] for d in data_list]
+            
+            ax1.plot(rates, p95, marker='o', linewidth=2, markersize=8, 
+                    label=f'{ftype.capitalize()} Failures')
+        
+        ax1.set_xlabel('Failure Rate (failures/min)', fontsize=12, fontweight='bold')
+        ax1.set_ylabel('P95 Latency (ms)', fontsize=12, fontweight='bold')
+        ax1.set_title('P95 Latency vs Failure Rate', fontsize=14, fontweight='bold', pad=20)
+        ax1.grid(True, alpha=0.3, linestyle='--')
+        ax1.legend(fontsize=10, framealpha=0.9)
+        
+        # P99 Latency
+        for ftype in sorted(data_by_type.keys()):
+            data_list = sorted(data_by_type[ftype], key=lambda x: x['failure_rate_per_min'])
+            rates = [d['failure_rate_per_min'] for d in data_list]
+            p99 = [d['p99_latency_ms'] for d in data_list]
+            
+            ax2.plot(rates, p99, marker='s', linewidth=2, markersize=8, 
+                    label=f'{ftype.capitalize()} Failures')
+        
+        ax2.set_xlabel('Failure Rate (failures/min)', fontsize=12, fontweight='bold')
+        ax2.set_ylabel('P99 Latency (ms)', fontsize=12, fontweight='bold')
+        ax2.set_title('P99 Latency vs Failure Rate', fontsize=14, fontweight='bold', pad=20)
+        ax2.grid(True, alpha=0.3, linestyle='--')
+        ax2.legend(fontsize=10, framealpha=0.9)
+        
+        plt.tight_layout()
+        output_file = self.output_dir / "resilience_latency.png"
+        plt.savefig(output_file, bbox_inches='tight')
+        print(f"✓ Generated: {output_file}")
+        plt.close()
+    
+    def plot_resilience_recovery_time(self):
+        """Plot resilience: average failure recovery time"""
+        if not self.resilience_data:
+            return
+        
+        # Group by failure type
+        data_by_type = {}
+        for d in self.resilience_data:
+            if d['num_clients'] == 5 and d['num_servers'] == 5:
+                ftype = d['failure_type']
+                if ftype not in data_by_type:
+                    data_by_type[ftype] = []
+                data_by_type[ftype].append(d)
+        
+        fig, ax = plt.subplots(figsize=(10, 6))
+        
+        for ftype in sorted(data_by_type.keys()):
+            data_list = sorted(data_by_type[ftype], key=lambda x: x['failure_rate_per_min'])
+            rates = [d['failure_rate_per_min'] for d in data_list]
+            recovery = [d['avg_failure_recovery_ms'] for d in data_list]
+            
+            ax.plot(rates, recovery, marker='d', linewidth=2, markersize=8, 
+                   label=f'{ftype.capitalize()} Failures')
+        
+        ax.set_xlabel('Failure Rate (failures/min)', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Avg Recovery Time (ms)', fontsize=12, fontweight='bold')
+        ax.set_title('Resilience: Average Failure Recovery Time', fontsize=14, fontweight='bold', pad=20)
+        ax.grid(True, alpha=0.3, linestyle='--')
+        ax.legend(fontsize=10, framealpha=0.9)
+        
+        plt.tight_layout()
+        output_file = self.output_dir / "resilience_recovery_time.png"
+        plt.savefig(output_file, bbox_inches='tight')
+        print(f"✓ Generated: {output_file}")
+        plt.close()
+    
+    def plot_resilience_success_rate(self):
+        """Plot resilience: success rate under failures"""
+        if not self.resilience_data:
+            return
+        
+        # Group by failure type
+        data_by_type = {}
+        for d in self.resilience_data:
+            if d['num_clients'] == 5 and d['num_servers'] == 5:
+                ftype = d['failure_type']
+                if ftype not in data_by_type:
+                    data_by_type[ftype] = []
+                data_by_type[ftype].append(d)
+        
+        fig, ax = plt.subplots(figsize=(10, 6))
+        
+        for ftype in sorted(data_by_type.keys()):
+            data_list = sorted(data_by_type[ftype], key=lambda x: x['failure_rate_per_min'])
+            rates = [d['failure_rate_per_min'] for d in data_list]
+            success = [d['success_rate'] for d in data_list]
+            
+            ax.plot(rates, success, marker='o', linewidth=2, markersize=8, 
+                   label=f'{ftype.capitalize()} Failures')
+        
+        ax.set_xlabel('Failure Rate (failures/min)', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Success Rate (%)', fontsize=12, fontweight='bold')
+        ax.set_title('Resilience: Success Rate vs Failure Rate', fontsize=14, fontweight='bold', pad=20)
+        ax.set_ylim([0, 105])
+        ax.grid(True, alpha=0.3, linestyle='--')
+        ax.legend(fontsize=10, framealpha=0.9)
+        
+        plt.tight_layout()
+        output_file = self.output_dir / "resilience_success_rate.png"
+        plt.savefig(output_file, bbox_inches='tight')
+        print(f"✓ Generated: {output_file}")
+        plt.close()
+    
+    def plot_resilience_client_scale(self):
+        """Plot resilience: performance vs client count under failures"""
+        if not self.resilience_data:
+            return
+        
+        # Filter mixed failure type with rate=2
+        data_list = [d for d in self.resilience_data 
+                    if d.get('failure_type') == 'mixed' and d.get('failure_rate_per_min') == 2]
+        data_list.sort(key=lambda x: x['num_clients'])
+        
+        if len(data_list) < 2:
+            return
+        
+        clients = [d['num_clients'] for d in data_list]
+        throughput = [d['throughput_ops_per_sec'] for d in data_list]
+        p95_latency = [d['p95_latency_ms'] for d in data_list]
+        
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+        
+        # Throughput
+        ax1.plot(clients, throughput, marker='o', linewidth=2, markersize=8, 
+                color=COLORS['primary'])
+        ax1.set_xlabel('Number of Clients', fontsize=12, fontweight='bold')
+        ax1.set_ylabel('Throughput (ops/sec)', fontsize=12, fontweight='bold')
+        ax1.set_title('Throughput vs Clients (Mixed Failures, 2/min)', 
+                     fontsize=14, fontweight='bold', pad=20)
+        ax1.grid(True, alpha=0.3, linestyle='--')
+        
+        # Latency
+        ax2.plot(clients, p95_latency, marker='s', linewidth=2, markersize=8, 
+                color=COLORS['accent1'])
+        ax2.set_xlabel('Number of Clients', fontsize=12, fontweight='bold')
+        ax2.set_ylabel('P95 Latency (ms)', fontsize=12, fontweight='bold')
+        ax2.set_title('P95 Latency vs Clients (Mixed Failures, 2/min)', 
+                     fontsize=14, fontweight='bold', pad=20)
+        ax2.grid(True, alpha=0.3, linestyle='--')
+        
+        plt.tight_layout()
+        output_file = self.output_dir / "resilience_client_scale.png"
+        plt.savefig(output_file, bbox_inches='tight')
+        print(f"✓ Generated: {output_file}")
+        plt.close()
+    
+    def plot_resilience_server_scale(self):
+        """Plot resilience: performance vs server count under failures"""
+        if not self.resilience_data:
+            return
+        
+        # Filter crash failure type with rate=2
+        data_list = [d for d in self.resilience_data 
+                    if d.get('failure_type') == 'crash' and d.get('failure_rate_per_min') == 2]
+        data_list.sort(key=lambda x: x['num_servers'])
+        
+        if len(data_list) < 2:
+            return
+        
+        servers = [d['num_servers'] for d in data_list]
+        throughput = [d['throughput_ops_per_sec'] for d in data_list]
+        p95_latency = [d['p95_latency_ms'] for d in data_list]
+        
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+        
+        # Throughput
+        ax1.plot(servers, throughput, marker='o', linewidth=2, markersize=8, 
+                color=COLORS['accent3'])
+        ax1.set_xlabel('Number of Servers', fontsize=12, fontweight='bold')
+        ax1.set_ylabel('Throughput (ops/sec)', fontsize=12, fontweight='bold')
+        ax1.set_title('Throughput vs Servers (Crash Failures, 2/min)', 
+                     fontsize=14, fontweight='bold', pad=20)
+        ax1.grid(True, alpha=0.3, linestyle='--')
+        
+        # Latency
+        ax2.plot(servers, p95_latency, marker='s', linewidth=2, markersize=8, 
+                color=COLORS['accent2'])
+        ax2.set_xlabel('Number of Servers', fontsize=12, fontweight='bold')
+        ax2.set_ylabel('P95 Latency (ms)', fontsize=12, fontweight='bold')
+        ax2.set_title('P95 Latency vs Servers (Crash Failures, 2/min)', 
+                     fontsize=14, fontweight='bold', pad=20)
+        ax2.grid(True, alpha=0.3, linestyle='--')
+        
+        plt.tight_layout()
+        output_file = self.output_dir / "resilience_server_scale.png"
+        plt.savefig(output_file, bbox_inches='tight')
+        print(f"✓ Generated: {output_file}")
+        plt.close()
+    
+    def plot_resilience_comparison_bar(self):
+        """Plot resilience: bar chart comparing different failure scenarios"""
+        if not self.resilience_data:
+            return
+        
+        # Filter specific configurations for comparison
+        scenarios = []
+        labels = []
+        
+        for ftype in ['crash', 'partition', 'mixed']:
+            for rate in [1, 2, 4]:
+                data = [d for d in self.resilience_data 
+                       if d['failure_type'] == ftype and 
+                       d['failure_rate_per_min'] == rate and 
+                       d['num_clients'] == 5 and d['num_servers'] == 5]
+                if data:
+                    scenarios.append(data[0])
+                    labels.append(f"{ftype.capitalize()}\n{rate}/min")
+        
+        if not scenarios:
+            return
+        
+        throughput = [s['throughput_ops_per_sec'] for s in scenarios]
+        
+        fig, ax = plt.subplots(figsize=(12, 6))
+        
+        colors = [COLORS['accent3'] if 'crash' in l.lower() else 
+                 COLORS['accent1'] if 'partition' in l.lower() else 
+                 COLORS['primary'] for l in labels]
+        
+        bars = ax.bar(labels, throughput, color=colors, alpha=0.8, 
+                     edgecolor='black', linewidth=1.5)
+        
+        # Add value labels
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                   f'{height:.0f}', ha='center', va='bottom', fontweight='bold')
+        
+        ax.set_ylabel('Throughput (ops/sec)', fontsize=12, fontweight='bold')
+        ax.set_title('Resilience: Throughput Comparison Across Failure Scenarios', 
+                    fontsize=14, fontweight='bold', pad=20)
+        ax.grid(True, alpha=0.3, linestyle='--', axis='y')
+        
+        # Add legend
+        from matplotlib.patches import Patch
+        legend_elements = [
+            Patch(facecolor=COLORS['accent3'], label='Crash Failures'),
+            Patch(facecolor=COLORS['accent1'], label='Partition Failures'),
+            Patch(facecolor=COLORS['primary'], label='Mixed Failures')
+        ]
+        ax.legend(handles=legend_elements, fontsize=10, framealpha=0.9)
+        
+        plt.tight_layout()
+        output_file = self.output_dir / "resilience_comparison_bar.png"
+        plt.savefig(output_file, bbox_inches='tight')
+        print(f"✓ Generated: {output_file}")
+        plt.close()
     
     def generate_all_plots(self):
         """Generate all plots"""
         print("\nStarting performance chart generation...")
         print("=" * 60)
         
-        self.plot_throughput_vs_clients()
-        self.plot_latency_vs_clients()
-        self.plot_throughput_vs_servers()
-        self.plot_success_rate()
-        self.plot_operation_breakdown()
-        self.plot_latency_cdf()
-        self.plot_scalability_heatmap()
+        # Throughput benchmark charts
+        if self.throughput_data:
+            print("\nGenerating throughput benchmark charts...")
+            self.plot_throughput_vs_clients()
+            self.plot_latency_vs_clients()
+            self.plot_throughput_vs_servers()
+            self.plot_success_rate()
+            self.plot_operation_breakdown()
+            self.plot_latency_cdf()
+            self.plot_scalability_heatmap()
+        
+        # Resilience benchmark charts
+        if self.resilience_data:
+            print("\nGenerating resilience benchmark charts...")
+            self.plot_resilience_throughput_comparison()
+            self.plot_resilience_latency_comparison()
+            self.plot_resilience_recovery_time()
+            self.plot_resilience_success_rate()
+            self.plot_resilience_client_scale()
+            self.plot_resilience_server_scale()
+            self.plot_resilience_comparison_bar()
+        
         self.generate_summary_report()
         
         print("=" * 60)
