@@ -3,7 +3,7 @@ package tester_test
 import (
 	"testing"
 
-	"raft/kvsrv1/rpc"
+	"raft/rpc"
 	"raft/labrpc"
 	"raft/tester1"
 )
