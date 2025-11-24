@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"6.5840/labrpc"
+	"raft/labrpc"
 )
 
 const GRP0 = 0

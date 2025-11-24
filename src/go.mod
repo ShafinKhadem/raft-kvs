@@ -1,4 +1,4 @@
-module 6.5840
+module raft
 
 go 1.22
 

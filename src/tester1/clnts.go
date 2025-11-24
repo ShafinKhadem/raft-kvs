@@ -4,7 +4,7 @@ import (
 	//"log"
 	"sync"
 
-	"6.5840/labrpc"
+	"raft/labrpc"
 )
 
 type end struct {
