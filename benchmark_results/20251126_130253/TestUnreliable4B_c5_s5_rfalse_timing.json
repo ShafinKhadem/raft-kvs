@@ -1,0 +1,9 @@
+{
+    "test_name": "TestUnreliable4B",
+    "description": "Unreliable network test (5 clients, 5 servers)",
+    "num_clients": 5,
+    "num_servers": 5,
+    "reliable": false,
+    "duration_seconds": 4.930468214,
+    "timestamp": "2025-11-26T13:05:47-07:00"
+}

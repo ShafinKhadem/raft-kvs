@@ -1,0 +1,6 @@
+=== RUN   TestSpeed4B
+Test: one client (4B speed) (reliable network)...
+  ... Passed --  time  2.4s #peers 3 #RPCs  7931 #Ops    0
+--- PASS: TestSpeed4B (2.41s)
+PASS
+ok  	raft/kvraft1	2.417s

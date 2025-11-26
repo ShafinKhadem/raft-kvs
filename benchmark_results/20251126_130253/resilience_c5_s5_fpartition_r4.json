@@ -1,0 +1,20 @@
+{
+  "num_clients": 5,
+  "num_servers": 5,
+  "failure_type": "crash",
+  "failure_rate_per_min": 4,
+  "duration_sec": 15.000428183,
+  "num_operations": 2458,
+  "num_failures_injected": 0,
+  "throughput_ops_per_sec": 163.86198913879363,
+  "avg_latency_ms": 20.31564401952807,
+  "p50_latency_ms": 19.116,
+  "p95_latency_ms": 40.433,
+  "p99_latency_ms": 50.864,
+  "success_rate": 100,
+  "ok_count": 2458,
+  "maybe_count": 0,
+  "version_err_count": 0,
+  "avg_failure_recovery_ms": 0,
+  "timestamp": "2025-11-26T13:09:22-07:00"
+}
