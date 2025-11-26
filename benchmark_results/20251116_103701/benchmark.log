@@ -1,0 +1,91 @@
+[2025-11-16 10:37:01] ==========================================
+[2025-11-16 10:37:01] Starting Raft KVS Performance Benchmark
+[2025-11-16 10:37:01] Results directory: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701
+[2025-11-16 10:37:01] ==========================================
+[2025-11-16 10:37:01] Cleaning up old temporary files...
+[2025-11-16 10:37:01] >>> Phase 1: Basic Functionality Tests
+[2025-11-16 10:37:01] Running test: Basic functionality test (1 client, 5 servers)
+[2025-11-16 10:37:01]   Test name: TestBasic4B
+[2025-11-16 10:37:01]   Clients: 1, Servers: 5, Reliable network: true
+[2025-11-16 10:37:05]   ✓ Test passed
+[2025-11-16 10:37:05]   Completion time: 3.848945000s
+[2025-11-16 10:37:05] Running test: Speed test (1 client, 3 servers)
+[2025-11-16 10:37:05]   Test name: TestSpeed4B
+[2025-11-16 10:37:05]   Clients: 1, Servers: 3, Reliable network: true
+[2025-11-16 10:37:07]   ✓ Test passed
+[2025-11-16 10:37:07]   Completion time: 1.439945000s
+[2025-11-16 10:37:07] >>> Phase 2: Concurrent Client Count Performance Tests
+[2025-11-16 10:37:07] Running throughput benchmark
+[2025-11-16 10:37:07]   Clients: 1, Servers: 4
+[2025-11-16 10:37:07]   Operations: 0, Duration: 10s
+[2025-11-16 10:37:17]   Results saved to: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701/throughput_c1_s4_ops0.json
+[2025-11-16 10:37:17] Running throughput benchmark
+[2025-11-16 10:37:17]   Clients: 2, Servers: 4
+[2025-11-16 10:37:17]   Operations: 0, Duration: 10s
+[2025-11-16 10:37:29]   Results saved to: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701/throughput_c2_s4_ops0.json
+[2025-11-16 10:37:29] Running throughput benchmark
+[2025-11-16 10:37:29]   Clients: 4, Servers: 4
+[2025-11-16 10:37:29]   Operations: 0, Duration: 10s
+[2025-11-16 10:37:40]   Results saved to: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701/throughput_c4_s4_ops0.json
+[2025-11-16 10:37:40] Running throughput benchmark
+[2025-11-16 10:37:40]   Clients: 8, Servers: 4
+[2025-11-16 10:37:40]   Operations: 0, Duration: 10s
+[2025-11-16 10:37:51]   Results saved to: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701/throughput_c8_s4_ops0.json
+[2025-11-16 10:37:51] Running throughput benchmark
+[2025-11-16 10:37:51]   Clients: 16, Servers: 4
+[2025-11-16 10:37:51]   Operations: 0, Duration: 10s
+[2025-11-16 10:38:02]   Results saved to: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701/throughput_c16_s4_ops0.json
+[2025-11-16 10:38:02] Running throughput benchmark
+[2025-11-16 10:38:02]   Clients: 32, Servers: 4
+[2025-11-16 10:38:02]   Operations: 0, Duration: 10s
+[2025-11-16 10:38:13]   Results saved to: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701/throughput_c32_s4_ops0.json
+[2025-11-16 10:38:13] >>> Phase 3: Server Scale Performance Tests
+[2025-11-16 10:38:13] Running throughput benchmark
+[2025-11-16 10:38:13]   Clients: 4, Servers: 4
+[2025-11-16 10:38:13]   Operations: 0, Duration: 10s
+[2025-11-16 10:38:24]   Results saved to: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701/throughput_c4_s4_ops0.json
+[2025-11-16 10:38:24] Running throughput benchmark
+[2025-11-16 10:38:24]   Clients: 4, Servers: 8
+[2025-11-16 10:38:24]   Operations: 0, Duration: 10s
+[2025-11-16 10:38:35]   Results saved to: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701/throughput_c4_s8_ops0.json
+[2025-11-16 10:38:35] Running throughput benchmark
+[2025-11-16 10:38:35]   Clients: 4, Servers: 16
+[2025-11-16 10:38:35]   Operations: 0, Duration: 10s
+[2025-11-16 10:38:46]   Results saved to: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701/throughput_c4_s16_ops0.json
+[2025-11-16 10:38:46] Running throughput benchmark
+[2025-11-16 10:38:46]   Clients: 4, Servers: 32
+[2025-11-16 10:38:46]   Operations: 0, Duration: 10s
+[2025-11-16 10:38:57]   Results saved to: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701/throughput_c4_s32_ops0.json
+[2025-11-16 10:38:57] >>> Phase 4: Fixed Operation Count Performance Tests
+[2025-11-16 10:38:57] Running throughput benchmark
+[2025-11-16 10:38:57]   Clients: 5, Servers: 5
+[2025-11-16 10:38:57]   Operations: 500, Duration: 0s
+[2025-11-16 10:38:58]   Results saved to: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701/throughput_c5_s5_ops500.json
+[2025-11-16 10:38:58] Running throughput benchmark
+[2025-11-16 10:38:58]   Clients: 5, Servers: 5
+[2025-11-16 10:38:58]   Operations: 1000, Duration: 0s
+[2025-11-16 10:39:00]   Results saved to: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701/throughput_c5_s5_ops1000.json
+[2025-11-16 10:39:00] Running throughput benchmark
+[2025-11-16 10:39:00]   Clients: 5, Servers: 5
+[2025-11-16 10:39:00]   Operations: 2000, Duration: 0s
+[2025-11-16 10:39:04]   Results saved to: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701/throughput_c5_s5_ops2000.json
+[2025-11-16 10:39:04] Running throughput benchmark
+[2025-11-16 10:39:04]   Clients: 5, Servers: 5
+[2025-11-16 10:39:04]   Operations: 5000, Duration: 0s
+[2025-11-16 10:39:21]   Results saved to: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701/throughput_c5_s5_ops5000.json
+[2025-11-16 10:39:21] >>> Phase 5: Network Reliability Tests
+[2025-11-16 10:39:21] Running test: Unreliable network test (5 clients, 5 servers)
+[2025-11-16 10:39:21]   Test name: TestUnreliable4B
+[2025-11-16 10:39:21]   Clients: 5, Servers: 5, Reliable network: false
+[2025-11-16 10:39:25]   ✓ Test passed
+[2025-11-16 10:39:25]   Completion time: 4.549078000s
+[2025-11-16 10:39:25] ==========================================
+[2025-11-16 10:39:25] Generating Summary Report
+[2025-11-16 10:39:25] ==========================================
+[2025-11-16 10:39:25] Summary report generated: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701/summary.json
+[2025-11-16 10:39:25] 
+[2025-11-16 10:39:25] ==========================================
+[2025-11-16 10:39:25] Benchmark testing complete!
+[2025-11-16 10:39:25] Results saved in: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701
+[2025-11-16 10:39:25] Log file: /Users/claudiacumberbatch/Desktop/CS6450DistributedSystems/Code/raft-kvs/benchmark_results/20251116_103701/benchmark.log
+[2025-11-16 10:39:25] ==========================================

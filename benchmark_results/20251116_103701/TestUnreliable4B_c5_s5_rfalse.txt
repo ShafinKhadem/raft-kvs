@@ -1,0 +1,6 @@
+=== RUN   TestUnreliable4B
+Test: many clients (4B many clients) (unreliable network)...
+  ... Passed --  time  3.8s #peers 5 #RPCs  2288 #Ops  225
+--- PASS: TestUnreliable4B (3.79s)
+PASS
+ok  	6.5840/kvraft1	3.987s

@@ -7,10 +7,10 @@ import (
 	"time"
 	"fmt"
 
-	"6.5840/kvsrv1/rpc"
-	"6.5840/labrpc"
-	"6.5840/raftapi"
-	"6.5840/tester1"
+	"raft/rpc"
+	"raft/labrpc"
+	"raft/raftapi"
+	"raft/tester1"
 )
 
 type Test struct {

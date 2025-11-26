@@ -4,11 +4,11 @@ import (
 	"math/rand/v2"
 	"sync"
 
-	"6.5840/kvsrv1/rpc"
-	"6.5840/labrpc"
-	raft "6.5840/raft1"
-	"6.5840/raftapi"
-	tester "6.5840/tester1"
+	"raft/rpc"
+	"raft/labrpc"
+	raft "raft/raft"
+	"raft/raftapi"
+	tester "raft/tester1"
 )
 
 var useRaftStateMachine bool // to plug in another raft besided raft1

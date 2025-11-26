@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"6.5840/kvraft1/rsm"
-	"6.5840/kvsrv1/rpc"
-	"6.5840/kvtest1"
-	tester "6.5840/tester1"
+	"raft/kvraft1/rsm"
+	kvtest "raft/kvtest1"
+	"raft/rpc"
+	tester "raft/tester1"
 )
 
 const (
