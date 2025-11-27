@@ -1,0 +1,9 @@
+{
+    "test_name": "TestBasic4B",
+    "description": "Basic functionality test (1 client, 5 servers)",
+    "num_clients": 1,
+    "num_servers": 5,
+    "reliable": true,
+    "duration_seconds": 3.848945000,
+    "timestamp": "2025-11-16T10:37:05-07:00"
+}

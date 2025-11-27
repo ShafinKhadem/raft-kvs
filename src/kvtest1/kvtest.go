@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"6.5840/kvsrv1/rpc"
-	"6.5840/tester1"
+	"raft/rpc"
+	"raft/tester1"
 )
 
 // The tester generously allows solutions to complete elections in one second

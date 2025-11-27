@@ -1,0 +1,16 @@
+{
+  "num_clients": 32,
+  "num_servers": 4,
+  "num_operations": 4412,
+  "duration_sec": 10.013805625,
+  "throughput_ops_per_sec": 440.5917355720593,
+  "avg_latency_ms": 72.54786491387127,
+  "p50_latency_ms": 66.133,
+  "p95_latency_ms": 146.132,
+  "p99_latency_ms": 208.996,
+  "success_rate": 100,
+  "ok_count": 4412,
+  "maybe_count": 0,
+  "version_err_count": 0,
+  "timestamp": "2025-11-16T10:38:13-07:00"
+}
