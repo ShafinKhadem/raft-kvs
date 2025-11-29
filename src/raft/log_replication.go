@@ -2,8 +2,6 @@ package raft
 
 import (
 	"time"
-
-	"raft/raftapi"
 )
 
 // AppendEntries RPC handler.
@@ -59,12 +57,7 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	insertIdx := args.PrevLogIndex + 1
 	if insertIdx < len(rf.log) {
 		// Truncate any conflicting entries
-		for i := insertIdx; i < len(rf.log); i++ {
-			rf.applyCh <- raftapi.ApplyMsg{
-				Aborted: true,
-				Command: rf.log[i].Command,
-			}
-		}
+		rf.abortCommandsFrom(insertIdx)
 		rf.log = rf.log[:insertIdx]
 	}
 	if len(args.Entries) > 0 {

@@ -4,23 +4,17 @@ import (
 	"math/rand/v2"
 	"sync"
 
-	"raft/rpc"
 	"raft/labrpc"
 	raft "raft/raft"
 	"raft/raftapi"
+	"raft/rpc"
 	tester "raft/tester1"
 )
 
 var useRaftStateMachine bool // to plug in another raft besided raft1
 
-type Op struct {
-	// Your definitions here.
-	// Field names must start with capital letters,
-	// otherwise RPC will break.
-	Id  int64
-	Me  int
-	Req any
-}
+type Request = raft.Request
+type Op = raft.Op
 
 // A server (i.e., ../server.go) that wants to replicate itself calls
 // MakeRSM and must implement the StateMachine interface.  This
@@ -128,7 +122,7 @@ func (rsm *RSM) Submit(req any) (rpc.Err, any) {
 		rsm.mu.Unlock()
 	}()
 
-	op := Op{Me: rsm.me, Id: id, Req: req}
+	op := Op{Me: rsm.me, Id: id, Req: req.(Request)}
 	_, termBeforeOp, isLeader := rsm.rf.Start(op)
 	if !isLeader {
 		return rpc.ErrWrongLeader, nil

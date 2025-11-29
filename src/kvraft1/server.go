@@ -23,11 +23,7 @@ type KVServer struct {
 	versions map[string]rpc.Tversion // key -> current version
 }
 
-type Op struct {
-	OpType  string
-	GetArgs rpc.GetArgs
-	PutArgs rpc.PutArgs
-}
+type Op = rsm.Request
 
 // To type-cast req to the right type, take a look at Go's type switches or type
 // assertions below:

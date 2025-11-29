@@ -43,9 +43,16 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 		return -1, rf.currentTerm, false
 	}
 
+	// When we have a read only operation and we already have uncommitted log entries, we don't need to append a new log entry.
+	// We can just return the current commit index.
+	if command.(Op).Req.OpType == "Get" && rf.commitIndex < rf.lastLogIndex() {
+		rf.log[rf.lastLogIndex()].Commands = append(rf.log[rf.lastLogIndex()].Commands, command)
+		return rf.commitIndex, rf.currentTerm, true
+	}
+
 	term := rf.currentTerm
 	index := rf.lastLogIndex() + 1
-	rf.log = append(rf.log, LogEntry{Term: term, Command: command})
+	rf.log = append(rf.log, LogEntry{Term: term, Commands: []any{command}})
 	rf.matchIndex[rf.me] = index
 	rf.nextIndex[rf.me] = index + 1
 	rf.persist()
@@ -56,12 +63,14 @@ func (rf *Raft) Start(command interface{}) (int, int, bool) {
 	return index, term, true
 }
 
-// abortPendingCommands sends abort messages for all uncommitted log entries.
-func (rf *Raft) abortPendingCommands() {
-	for i := rf.lastApplied + 1; i < len(rf.log); i++ {
-		rf.applyCh <- raftapi.ApplyMsg{
-			Aborted: true,
-			Command: rf.log[i].Command,
+// abortCommandsFrom beginIndex intsends abort messages for all uncommitted log entries.
+func (rf *Raft) abortCommandsFrom(beginIndex int) {
+	for i := beginIndex; i < len(rf.log); i++ {
+		for _, command := range rf.log[i].Commands {
+			rf.applyCh <- raftapi.ApplyMsg{
+				Aborted: true,
+				Command: command,
+			}
 		}
 	}
 }
@@ -80,7 +89,7 @@ func (rf *Raft) Kill() {
 	atomic.StoreInt32(&rf.dead, 1)
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
-	rf.abortPendingCommands()
+	rf.abortCommandsFrom(rf.lastApplied + 1)
 }
 
 // killed checks whether this Raft instance has been killed.
@@ -146,10 +155,12 @@ func (rf *Raft) applier() {
 
 		// Apply entries without holding the lock
 		for i, e := range entries {
-			rf.applyCh <- raftapi.ApplyMsg{
-				CommandValid: true,
-				Command:      e.Command,
-				CommandIndex: start + i,
+			for _, command := range e.Commands {
+				rf.applyCh <- raftapi.ApplyMsg{
+					CommandValid: true,
+					Command:      command,
+					CommandIndex: start + i,
+				}
 			}
 			rf.mu.Lock()
 			rf.lastApplied = start + i

@@ -6,6 +6,7 @@ import (
 
 	"raft/labrpc"
 	"raft/raftapi"
+	"raft/rpc"
 	tester "raft/tester1"
 )
 
@@ -41,8 +42,8 @@ type Raft struct {
 
 // LogEntry represents a single entry in the Raft log.
 type LogEntry struct {
-	Term    int
-	Command interface{}
+	Term     int
+	Commands []interface{}
 }
 
 // ServerState represents the state of a Raft server.
@@ -84,4 +85,19 @@ type AppendEntriesReply struct {
 	Success       bool // If Follower contains matching prevLogIndex and prevLogTerm, return true
 	ConflictTerm  int  // Term of the conflicting entry (for fast backup)
 	ConflictIndex int  // Index of first entry with ConflictTerm (for fast backup)
+}
+
+type Request struct {
+	OpType  string
+	GetArgs rpc.GetArgs
+	PutArgs rpc.PutArgs
+}
+
+type Op struct {
+	// Your definitions here.
+	// Field names must start with capital letters,
+	// otherwise RPC will break.
+	Id  int64
+	Me  int
+	Req Request
 }
