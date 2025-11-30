@@ -2,6 +2,7 @@ package kvraft
 
 import (
 	"bytes"
+	"fmt"
 	"math/rand/v2"
 	"sync"
 	"sync/atomic"
@@ -26,7 +27,6 @@ type KVServer struct {
 
 	getQueue    chan Op
 	getQueueLen int32
-	queueMu     sync.Mutex
 
 	opChs   map[int64]chan any
 	opChsMu sync.Mutex
@@ -57,27 +57,52 @@ func (kv *KVServer) DoOp(req any) any {
 		}
 	case "Put":
 		key := op.PutArgs.Key
-		if key == "sync" {
-			// Dummy Put for syncing Get requests
-			return rpc.PutReply{Err: rpc.OK}
-		}
-
+		var opResult rpc.PutReply
 		kv.mu.Lock()
 		defer kv.mu.Unlock()
-		expectedVersion := op.PutArgs.Version
-		currentVersion, exists := kv.versions[key]
-		if !exists && expectedVersion == 0 {
-			// New key, version starts at 0
-			kv.kv[key] = op.PutArgs.Value
-			kv.versions[key] = 1
-			return rpc.PutReply{Err: rpc.OK}
-		} else if exists && expectedVersion == currentVersion {
-			kv.kv[key] = op.PutArgs.Value
-			kv.versions[key] = currentVersion + 1
-			return rpc.PutReply{Err: rpc.OK}
+
+		if key == "sync" {
+			// Dummy Put to sync Get queue
+			opResult = rpc.PutReply{Err: rpc.OK}
+
+			// Now process the Get queue up to the length recorded before this Put
+			var queuelen, syncServer int
+			fmt.Sscanf(op.PutArgs.Value, "%d %d", &syncServer, &queuelen)
+			if syncServer != kv.me {
+				// Not for us
+				queuelen = 0
+			} else {
+				// fmt.Println("processing get queue of length", queuelen)
+				for i := 0; i < queuelen; i++ {
+					getOp := <-kv.getQueue
+					kv.opChsMu.Lock()
+					getCh, ok := kv.opChs[getOp.Id]
+					kv.opChsMu.Unlock()
+					if !ok {
+						panic("getCh not found")
+					}
+					getResult := kv.DoOp(getOp)
+					getCh <- getResult
+				}
+			}
 		} else {
-			return rpc.PutReply{Err: rpc.ErrVersion}
+			expectedVersion := op.PutArgs.Version
+			currentVersion, exists := kv.versions[key]
+			if !exists && expectedVersion == 0 {
+				// New key, version starts at 0
+				kv.kv[key] = op.PutArgs.Value
+				kv.versions[key] = 1
+				opResult = rpc.PutReply{Err: rpc.OK}
+			} else if exists && expectedVersion == currentVersion {
+				kv.kv[key] = op.PutArgs.Value
+				kv.versions[key] = currentVersion + 1
+				opResult = rpc.PutReply{Err: rpc.OK}
+			} else {
+				opResult = rpc.PutReply{Err: rpc.ErrVersion}
+			}
 		}
+		return opResult
+
 	default:
 		// Invalid operation
 		return nil
@@ -143,42 +168,12 @@ func (kv *KVServer) Put(args *rpc.PutArgs, reply *rpc.PutReply) {
 	// You can use go's type casts to turn the any return value
 	// of Submit() into a PutReply: rep.(rpc.PutReply)
 
-	// We want to exclusively batch process Get requests with this Put
-	kv.queueMu.Lock()
-	// We can only process the Get requests that were queued before this Put
-	queuelen := int(atomic.LoadInt32(&kv.getQueueLen))
-	// Reducing the queuelen first to avoid redundant sync Puts
-	atomic.AddInt32(&kv.getQueueLen, -int32(queuelen))
-	kv.queueMu.Unlock()
-
 	op := Op{OpType: "Put", PutArgs: *args}
 	rpcResult, opResult := kv.rsm.Submit(op)
 	if rpcResult != rpc.OK {
 		*reply = rpc.PutReply{Err: rpc.ErrWrongLeader}
 	} else {
 		*reply = opResult.(rpc.PutReply)
-	}
-
-	// Process Get queue
-	// We can't allow concurrent read write to the kv map
-	kv.mu.Lock()
-	defer kv.mu.Unlock()
-	// fmt.Println("processing get queue of length", queuelen)
-	for i := 0; i < queuelen; i++ {
-		getOp := <-kv.getQueue
-		kv.opChsMu.Lock()
-		getCh, ok := kv.opChs[getOp.Id]
-		kv.opChsMu.Unlock()
-		if !ok {
-			panic("getCh not found")
-		}
-		if rpcResult != rpc.OK {
-			getCh <- rpc.GetReply{Err: rpc.ErrWrongLeader}
-		} else {
-			// Execute the Get operation
-			getResult := kv.DoOp(getOp)
-			getCh <- getResult
-		}
 	}
 }
 
@@ -225,8 +220,14 @@ func StartKVServer(servers []*labrpc.ClientEnd, gid tester.Tgid, me int, persist
 	go func() {
 		// Loop indefinitely, executing the desired action on each tick
 		for !kv.killed() {
-			if atomic.LoadInt32(&kv.getQueueLen) > 0 {
-				kv.Put(&rpc.PutArgs{Key: "sync"}, &rpc.PutReply{})
+			// This may be the leader, and there may be Get requests waiting in other replicas
+			queuelen := int(atomic.LoadInt32(&kv.getQueueLen))
+			if queuelen > 0 {
+				reply := rpc.PutReply{}
+				servers[kv.rsm.Raft().LeaderId()].Call("KVServer.Put", &rpc.PutArgs{Key: "sync", Value: fmt.Sprintf("%d %d", me, queuelen)}, &reply)
+				if reply.Err == rpc.OK {
+					atomic.AddInt32(&kv.getQueueLen, -int32(queuelen))
+				}
 			}
 			time.Sleep(1 * time.Millisecond)
 		}

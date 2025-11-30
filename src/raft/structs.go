@@ -33,6 +33,7 @@ type Raft struct {
 	// Additional state
 	state             ServerState // Follower, Candidate, or Leader
 	lastHeartbeatTime time.Time   // last time received heartbeat (for Follower/Candidate)
+	leaderId          int         // current leader ID
 	lastHeartbeatSent time.Time   // last time sent heartbeat (for Leader)
 
 	applyCh   chan raftapi.ApplyMsg // channel for applying logs

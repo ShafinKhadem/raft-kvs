@@ -130,6 +130,7 @@ func (rf *Raft) startElection() {
 // becomeLeader transitions this server to the Leader state.
 func (rf *Raft) becomeLeader() {
 	rf.state = Leader
+	rf.leaderId = rf.me
 	// Initialize nextIndex and matchIndex
 	n := len(rf.peers)
 	rf.nextIndex = make([]int, n)
@@ -153,4 +154,8 @@ func (rf *Raft) becomeFollower(term int) {
 	rf.currentTerm = term
 	rf.votedFor = -1
 	rf.persist()
+}
+
+func (rf *Raft) LeaderId() int {
+	return rf.leaderId
 }

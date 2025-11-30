@@ -1,6 +1,7 @@
 package kvraft
 
 import (
+	"math/rand"
 	"sync"
 	"time"
 
@@ -35,33 +36,26 @@ func MakeClerk(clnt *tester.Clnt, servers []string) kvtest.IKVClerk {
 func (ck *Clerk) Get(key string) (string, rpc.Tversion, rpc.Err) {
 	args := rpc.GetArgs{Key: key}
 	for {
-		ck.mu.Lock()
-		servers := append([]string{}, ck.servers...)
-		ck.mu.Unlock()
-		for idx, srv := range servers {
-			reply := rpc.GetReply{}
-			ch := make(chan bool, 1)
-			go func() {
-				ch <- ck.clnt.Call(srv, "KVServer.Get", &args, &reply)
-			}()
-			select {
-			case ok := <-ch:
-				if ok {
-					if reply.Err == rpc.OK || reply.Err == rpc.ErrNoKey {
-						ck.moveServerToFront(servers, idx)
-					}
-					if reply.Err == rpc.OK {
-						return reply.Value, reply.Version, rpc.OK
-					} else if reply.Err == rpc.ErrNoKey {
-						return "", 0, rpc.ErrNoKey
-					}
-					// If ErrWrongLeader or other errors, try next server
+		idx := rand.Intn(len(ck.servers))
+		srv := ck.servers[idx]
+		reply := rpc.GetReply{}
+		ch := make(chan bool, 1)
+		go func() {
+			ch <- ck.clnt.Call(srv, "KVServer.Get", &args, &reply)
+		}()
+		select {
+		case ok := <-ch:
+			if ok {
+				if reply.Err == rpc.OK {
+					return reply.Value, reply.Version, rpc.OK
+				} else if reply.Err == rpc.ErrNoKey {
+					return "", 0, rpc.ErrNoKey
 				}
-			case <-time.After(10 * time.Second):
+				// If ErrWrongLeader or other errors, try next server
 			}
-			// If call failed (network error), try next server
+		case <-time.After(10 * time.Second):
 		}
-		// If all servers failed, loop again (keeps trying forever)
+		// If server failed, loop again (keeps trying forever)
 	}
 }
 

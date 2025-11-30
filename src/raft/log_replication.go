@@ -23,6 +23,7 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 
 	// If the request's term is greater than or equal to the current term, reset the election timer
 	rf.lastHeartbeatTime = time.Now()
+	rf.leaderId = args.LeaderId
 
 	// If a higher term is found, convert to Follower
 	if args.Term > rf.currentTerm {
