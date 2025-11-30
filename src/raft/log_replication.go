@@ -227,3 +227,141 @@ func (rf *Raft) sendHeartbeats() {
 	rf.broadcastAppendEntries()
 	rf.mu.Unlock()
 }
+
+// ConfirmLeadership initiates a leadership confirmation by sending heartbeats to all followers.
+// Returns (readId, success). If not leader, returns (0, false).
+// The caller should then call WaitForConfirmation(readId) to wait for the result.
+func (rf *Raft) ConfirmLeadership() (int64, bool) {
+	rf.mu.Lock()
+
+	// Check if we're the leader
+	if rf.state != Leader {
+		rf.mu.Unlock()
+		return 0, false
+	}
+
+	term := rf.currentTerm
+
+	// Generate unique read ID
+	rf.readMu.Lock()
+	readId := rf.nextReadId
+	rf.nextReadId++
+	rf.readMu.Unlock()
+
+	// Create confirmation tracker
+	majority := len(rf.peers)/2 + 1
+	confirmation := &ReadConfirmation{
+		term:     term,
+		response: 1, // count self
+		needed:   majority,
+		done:     make(chan bool, 1),
+	}
+
+	rf.readMu.Lock()
+	rf.readConfirmations[readId] = confirmation
+	rf.readMu.Unlock()
+
+	// Send heartbeats to all followers
+	for i := range rf.peers {
+		if i == rf.me {
+			continue
+		}
+
+		go func(server int) {
+			rf.mu.Lock()
+			if rf.state != Leader || rf.currentTerm != term {
+				rf.mu.Unlock()
+				return
+			}
+
+			// Calculate PrevLogIndex and PrevLogTerm with bounds checking
+			prevIdx := rf.nextIndex[server] - 1
+			prevTerm := 0
+			if prevIdx >= 0 && prevIdx < len(rf.log) {
+				prevTerm = rf.log[prevIdx].Term
+			}
+
+			args := &AppendEntriesArgs{
+				Term:         term,
+				LeaderId:     rf.me,
+				PrevLogIndex: prevIdx,
+				PrevLogTerm:  prevTerm,
+				Entries:      []LogEntry{}, // empty for heartbeat
+				LeaderCommit: rf.commitIndex,
+			}
+			rf.mu.Unlock()
+
+			reply := &AppendEntriesReply{}
+			ok := rf.sendAppendEntries(server, args, reply)
+
+			if ok {
+				rf.handleConfirmationReply(readId, reply)
+			}
+		}(i)
+	}
+
+	rf.mu.Unlock()
+	return readId, true
+}
+
+// handleConfirmationReply processes a response for a read confirmation.
+func (rf *Raft) handleConfirmationReply(readId int64, reply *AppendEntriesReply) {
+	rf.readMu.Lock()
+	confirmation, exists := rf.readConfirmations[readId]
+	rf.readMu.Unlock()
+
+	if !exists {
+		return // confirmation already completed or timed out
+	}
+
+	confirmation.mu.Lock()
+	defer confirmation.mu.Unlock()
+
+	// Check if term matches and reply is successful
+	if reply.Term == confirmation.term && reply.Success {
+		confirmation.response++
+
+		// If we have majority, signal completion
+		if confirmation.response >= confirmation.needed {
+			select {
+			case confirmation.done <- true:
+			default: // already signaled
+			}
+		}
+	} else if reply.Term > confirmation.term {
+		// Higher term detected, we're not leader anymore
+		select {
+		case confirmation.done <- false:
+		default:
+		}
+	}
+}
+
+// WaitForConfirmation waits for a leadership confirmation to complete.
+// Returns true if confirmed, false if leadership lost or timeout.
+func (rf *Raft) WaitForConfirmation(readId int64) bool {
+	rf.readMu.Lock()
+	confirmation, exists := rf.readConfirmations[readId]
+	rf.readMu.Unlock()
+
+	if !exists {
+		return false
+	}
+
+	// Wait for confirmation with timeout
+	select {
+	case success := <-confirmation.done:
+		// Clean up
+		rf.readMu.Lock()
+		delete(rf.readConfirmations, readId)
+		rf.readMu.Unlock()
+		return success
+
+	case <-time.After(1 * time.Second):
+		// Timeout - assume leadership lost
+		rf.readMu.Lock()
+		delete(rf.readConfirmations, readId)
+		rf.readMu.Unlock()
+		return false
+	}
+}

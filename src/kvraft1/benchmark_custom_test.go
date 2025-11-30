@@ -155,7 +155,7 @@ func TestRaftBenchmark(t *testing.T) {
 					}
 
 				} else {
-					// Get operation
+					// Get operation - will use batched read optimization!
 					_, _, err := ck.Get(key)
 					latency := time.Since(opStart).Microseconds()
 

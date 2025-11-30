@@ -1,9 +1,0 @@
-{
-    "test_name": "TestSpeed4B",
-    "description": "Speed test (1 client, 3 servers)",
-    "num_clients": 1,
-    "num_servers": 3,
-    "reliable": true,
-    "duration_seconds": 1.439945000,
-    "timestamp": "2025-11-16T10:37:07-07:00"
-}

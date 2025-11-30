@@ -108,7 +108,7 @@ func (kv *KVServer) Get(args *rpc.GetArgs, reply *rpc.GetReply) {
 	// You can use go's type casts to turn the any return value
 	// of Submit() into a GetReply: rep.(rpc.GetReply)
 	op := Op{OpType: "Get", GetArgs: *args}
-	rpcResult, opResult := kv.rsm.Submit(op)
+	rpcResult, opResult := kv.rsm.SubmitReadBatched(op)
 	if rpcResult != rpc.OK {
 		*reply = rpc.GetReply{Err: rpc.ErrWrongLeader}
 		return

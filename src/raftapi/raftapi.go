@@ -10,6 +10,10 @@ type Raft interface {
 	// leader
 	GetState() (int, bool)
 
+	// For batch read optimization: confirm leadership
+	ConfirmLeadership() (int64, bool)
+	WaitForConfirmation(readId int64) bool
+
 	// For Snaphots (3D)
 	Snapshot(index int, snapshot []byte)
 	PersistBytes() int

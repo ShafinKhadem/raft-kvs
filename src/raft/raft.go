@@ -186,6 +186,10 @@ func Make(peers []*labrpc.ClientEnd, me int,
 	rf.lastHeartbeatTime = time.Now()
 	rf.applyCond = sync.NewCond(&rf.mu)
 
+	// For batch read confirmation
+	rf.readConfirmations = make(map[int64]*ReadConfirmation)
+	rf.nextReadId = 0
+
 	// Initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
 

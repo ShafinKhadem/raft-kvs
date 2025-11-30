@@ -37,6 +37,12 @@ type Raft struct {
 
 	applyCh   chan raftapi.ApplyMsg // channel for applying logs
 	applyCond *sync.Cond            // condition variable for efficient log application
+
+	// For read optimization
+	readConfirmations map[int64]*ReadConfirmation // track pending read confirmations
+	nextReadId        int64                       // monotonic read ID generator
+	readMu            sync.Mutex                  // protects read-related fields
+
 }
 
 // LogEntry represents a single entry in the Raft log.
@@ -84,4 +90,13 @@ type AppendEntriesReply struct {
 	Success       bool // If Follower contains matching prevLogIndex and prevLogTerm, return true
 	ConflictTerm  int  // Term of the conflicting entry (for fast backup)
 	ConflictIndex int  // Index of first entry with ConflictTerm (for fast backup)
+}
+
+// Track the amount of reads on clients to finally execute on leader locally
+type ReadConfirmation struct {
+	term     int
+	response int
+	needed   int
+	done     chan bool
+	mu       sync.Mutex
 }

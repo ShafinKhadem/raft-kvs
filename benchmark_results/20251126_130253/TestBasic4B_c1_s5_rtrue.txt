@@ -1,6 +1,0 @@
-=== RUN   TestBasic4B
-Test: one client (4B basic) (reliable network)...
-  ... Passed --  time  3.0s #peers 5 #RPCs 12556 #Ops  997
---- PASS: TestBasic4B (3.03s)
-PASS
-ok  	raft/kvraft1	3.029s
