@@ -10,3 +10,11 @@ func percentile(sorted []int64, p int) float64 {
 	}
 	return float64(sorted[index])
 }
+
+// Helper function to calculate average latency in milliseconds
+func avgLatencyMs(totalMicros int64, count int64) float64 {
+	if count == 0 {
+		return 0
+	}
+	return float64(totalMicros) / float64(count) / 1000.0
+}
