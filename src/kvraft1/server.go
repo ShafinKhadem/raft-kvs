@@ -111,9 +111,9 @@ func (kv *KVServer) Get(args *rpc.GetArgs, reply *rpc.GetReply) {
 	rpcResult, opResult := kv.rsm.Submit(op)
 	if rpcResult != rpc.OK {
 		*reply = rpc.GetReply{Err: rpc.ErrWrongLeader}
-		return
+	} else {
+		*reply = opResult.(rpc.GetReply)
 	}
-	*reply = opResult.(rpc.GetReply)
 }
 
 func (kv *KVServer) Put(args *rpc.PutArgs, reply *rpc.PutReply) {
@@ -124,9 +124,9 @@ func (kv *KVServer) Put(args *rpc.PutArgs, reply *rpc.PutReply) {
 	rpcResult, opResult := kv.rsm.Submit(op)
 	if rpcResult != rpc.OK {
 		*reply = rpc.PutReply{Err: rpc.ErrWrongLeader}
-		return
+	} else {
+		*reply = opResult.(rpc.PutReply)
 	}
-	*reply = opResult.(rpc.PutReply)
 }
 
 // the tester calls Kill() when a KVServer instance won't

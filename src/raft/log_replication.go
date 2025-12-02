@@ -182,6 +182,7 @@ func (rf *Raft) advanceCommitIndex() {
 }
 
 // broadcastAppendEntries sends AppendEntries RPCs to all peers.
+// It's only called when rf.mu is locked.
 func (rf *Raft) broadcastAppendEntries() {
 	if rf.state != Leader {
 		return

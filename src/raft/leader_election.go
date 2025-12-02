@@ -26,6 +26,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 	// Check if the vote can be granted
 	// 1. Not voted yet or already voted for this candidate
 	// 2. Candidate's log is at least as up-to-date as own log
+	// NOTE: If election timeout hasn't passed, we shouldn't grant vote - according to Section 6 of the Raft extended paper.
 	if (rf.votedFor == -1 || rf.votedFor == args.CandidateId) &&
 		rf.isLogUpToDate(args.LastLogIndex, args.LastLogTerm) {
 		reply.VoteGranted = true
