@@ -1,0 +1,11 @@
+{
+    "version": "base",
+    "timestamp": "20251202_222511",
+    "benchmark_date": "2025-12-02T22:31:57-07:00",
+    "results_directory": "/home/shafin/repos/6.5840/benchmark_results/base_20251202_222511",
+    "configuration": {
+        "write_ratios": [2,5,10,15,20,50,100],
+        "replica_counts": [3,5,7],
+        "duration_sec": 30
+    }
+}

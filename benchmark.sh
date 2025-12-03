@@ -31,7 +31,7 @@ log "Results directory: ${OUTPUT_DIR}"
 log "=========================================="
 
 # Configuration parameters for benchmarks
-WRITE_RATIOS=(2 10 15 20 50 100)
+WRITE_RATIOS=(2 5 10 15 20 50 100)
 REPLICA_COUNTS=(3 5 7)
 DURATION_SEC=30
 

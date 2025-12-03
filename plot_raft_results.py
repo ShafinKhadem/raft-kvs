@@ -130,7 +130,7 @@ def plot_scalability_replicas(results, output_dir):
     axes = [ax1, ax2]
     
     # Define version order: baseline first, then others
-    version_order = ['base', 'latency_opt', 'ALR']
+    version_order = ['base', 'ALR-leader-only', 'ALR']
     version_names = []
     for v in version_order:
         if v in results:
@@ -210,7 +210,7 @@ def plot_latency_comparison(results, output_dir):
     plt.figure(figsize=(12, 6))
     
     # Define version order: baseline first, then others
-    version_order = ['base', 'latency_opt', 'ALR']
+    version_order = ['base', 'ALR-leader-only', 'ALR']
     version_names = []
     for v in version_order:
         if v in results:
