@@ -21,9 +21,11 @@ type KVServer struct {
 	rsm  *rsm.RSM
 
 	// Your definitions here.
-	mu       sync.Mutex
-	kv       map[string]string       // key -> value
-	versions map[string]rpc.Tversion // key -> current version
+	mu          sync.Mutex
+	kv          map[string]string       // key -> value
+	versions    map[string]rpc.Tversion // key -> current version
+	syncVersion rpc.Tversion
+	syncCh      chan bool
 
 	getQueue    chan Op
 	getQueueLen int32
@@ -56,6 +58,7 @@ func (kv *KVServer) DoOp(req any) any {
 			return rpc.GetReply{Err: rpc.ErrNoKey}
 		}
 	case "Put":
+		// fmt.Println("server", kv.me, "processing Put for key", op.PutArgs.Key, "with value", op.PutArgs.Value, "with version", op.PutArgs.Version)
 		key := op.PutArgs.Key
 		var opResult rpc.PutReply
 		kv.mu.Lock()
@@ -72,17 +75,27 @@ func (kv *KVServer) DoOp(req any) any {
 				// Not for us
 				queuelen = 0
 			} else {
-				// fmt.Println("processing get queue of length", queuelen)
-				for i := 0; i < queuelen; i++ {
-					getOp := <-kv.getQueue
-					kv.opChsMu.Lock()
-					getCh, ok := kv.opChs[getOp.Id]
-					kv.opChsMu.Unlock()
-					if !ok {
-						panic("getCh not found")
+				expectedVersion := op.PutArgs.Version
+				currentVersion := kv.syncVersion
+				if expectedVersion == currentVersion {
+					kv.syncVersion = rpc.Tversion(rand.Uint64())
+					// fmt.Println("server", kv.me, "processing get queue of length", queuelen, "with sync version", kv.syncVersion)
+					atomic.AddInt32(&kv.getQueueLen, -int32(queuelen))
+					for i := 0; i < queuelen; i++ {
+						getOp := <-kv.getQueue
+						kv.opChsMu.Lock()
+						getCh, ok := kv.opChs[getOp.Id]
+						kv.opChsMu.Unlock()
+						if !ok {
+							panic("getCh not found")
+						}
+						getResult := kv.DoOp(getOp)
+						// fmt.Println("server", kv.me, "processed get for key", getOp.GetArgs.Key, "returning", getResult.(rpc.GetReply))
+						getCh <- getResult
 					}
-					getResult := kv.DoOp(getOp)
-					getCh <- getResult
+				} else {
+					// Version mismatch, do not process
+					// fmt.Println("sync version mismatch:", expectedVersion, currentVersion)
 				}
 			}
 		} else {
@@ -206,11 +219,12 @@ func StartKVServer(servers []*labrpc.ClientEnd, gid tester.Tgid, me int, persist
 	labgob.Register(rpc.GetArgs{})
 
 	kv := &KVServer{
-		me:       me,
-		kv:       make(map[string]string),
-		versions: make(map[string]rpc.Tversion),
-		getQueue: make(chan Op, 10000),
-		opChs:    make(map[int64]chan any),
+		me:          me,
+		kv:          make(map[string]string),
+		versions:    make(map[string]rpc.Tversion),
+		getQueue:    make(chan Op, 10000),
+		opChs:       make(map[int64]chan any),
+		syncVersion: rpc.Tversion(rand.Uint64()),
 	}
 
 	kv.rsm = rsm.MakeRSM(servers, me, persister, maxraftstate, kv)
@@ -223,10 +237,26 @@ func StartKVServer(servers []*labrpc.ClientEnd, gid tester.Tgid, me int, persist
 			// This may be the leader, and there may be Get requests waiting in other replicas
 			queuelen := int(atomic.LoadInt32(&kv.getQueueLen))
 			if queuelen > 0 {
+				// fmt.Println("syncing get queue of length", queuelen, "at server", me, "with sync version", kv.syncVersion)
+				version := kv.syncVersion
+				putargs := rpc.PutArgs{Key: "sync", Value: fmt.Sprintf("%d %d", me, queuelen), Version: version}
 				reply := rpc.PutReply{}
-				servers[kv.rsm.Raft().LeaderId()].Call("KVServer.Put", &rpc.PutArgs{Key: "sync", Value: fmt.Sprintf("%d %d", me, queuelen)}, &reply)
+				leaderId := kv.rsm.Raft().LeaderId()
+				if leaderId == me {
+					// We are the leader, no need to send RPC
+					kv.Put(&putargs, &reply)
+				} else {
+					// Send RPC to leader
+					servers[leaderId].Call("KVServer.Put", &putargs, &reply)
+				}
 				if reply.Err == rpc.OK {
-					atomic.AddInt32(&kv.getQueueLen, -int32(queuelen))
+					for kv.syncVersion == version {
+						time.Sleep(1 * time.Millisecond)
+					}
+				} else {
+					kv.mu.Lock()
+					kv.syncVersion = rpc.Tversion(rand.Uint64())
+					kv.mu.Unlock()
 				}
 			}
 			time.Sleep(1 * time.Millisecond)
