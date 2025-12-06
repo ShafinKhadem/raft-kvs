@@ -40,27 +40,30 @@ run_benchmark_test() {
     local num_replicas=$1
     local write_ratio=$2
     local duration=$3
-    local test_name="replicas${num_replicas}_writes${write_ratio}"
-    
+    local num_clients=${4:-5}
+    local test_name="replicas${num_replicas}_writes${write_ratio}_clients${num_clients}"
+
     log "Running benchmark: ${test_name}"
     log "  Replicas: ${num_replicas}, Write Ratio: ${write_ratio}%, Duration: ${duration}s"
-    
+
     local output_file="${OUTPUT_DIR}/${test_name}.json"
-    
+
     # Run the benchmark (adjust this command based on your actual test setup)
     # This assumes you have a benchmark test that can be parameterized
     cd "${SCRIPT_DIR}/src/kvraft1"
-    
+
     # Create a temporary test file with the configuration
     cat > /tmp/raft_bench_config.json <<EOF
 {
     "num_replicas": ${num_replicas},
     "write_ratio": ${write_ratio},
     "duration_sec": ${duration},
-    "output_file": "${output_file}"
+    "output_file": "${output_file}",
+    "num_clients": ${num_clients}
 }
 EOF
-    
+    cat /tmp/raft_bench_config.json
+
     # Run the Go benchmark test
     # Pass configuration via environment variable
     if BENCH_CONFIG_FILE=/tmp/raft_bench_config.json RAFT_VERSION="${VERSION_NAME}" \
@@ -69,26 +72,27 @@ EOF
     else
         log "  ✗ Benchmark failed"
     fi
-    
+
     rm -f /tmp/raft_bench_config.json
 }
 
 # Run benchmarks for different write ratios (varying write workload)
 log ">>> Phase 1: Write Ratio Performance Tests (5 replicas)"
-for write_ratio in "${WRITE_RATIOS[@]}"; do
-    run_benchmark_test 5 ${write_ratio} ${DURATION_SEC}
+CLIENT_COUNTS=(4000)
+for num_clients in "${CLIENT_COUNTS[@]}"; do
+    run_benchmark_test 5 0 ${DURATION_SEC} ${num_clients}
 done
 
-# Run benchmarks for different replica counts (scalability)
-log ">>> Phase 2: Replica Scalability Tests (2% writes)"
-for replicas in "${REPLICA_COUNTS[@]}"; do
-    run_benchmark_test ${replicas} 2 ${DURATION_SEC}
-done
+# # Run benchmarks for different replica counts (scalability)
+# log ">>> Phase 2: Replica Scalability Tests (2% writes)"
+# for replicas in "${REPLICA_COUNTS[@]}"; do
+#     run_benchmark_test ${replicas} 2 ${DURATION_SEC}
+# done
 
-log ">>> Phase 3: Replica Scalability Tests (10% writes)"
-for replicas in "${REPLICA_COUNTS[@]}"; do
-    run_benchmark_test ${replicas} 10 ${DURATION_SEC}
-done
+# log ">>> Phase 3: Replica Scalability Tests (10% writes)"
+# for replicas in "${REPLICA_COUNTS[@]}"; do
+#     run_benchmark_test ${replicas} 10 ${DURATION_SEC}
+# done
 
 # Generate summary JSON
 SUMMARY_FILE="${OUTPUT_DIR}/summary.json"

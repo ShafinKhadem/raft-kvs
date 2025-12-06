@@ -1,0 +1,279 @@
+[2025-12-05 21:02:49] ==========================================
+[2025-12-05 21:02:49] Starting Raft Benchmark for: ALR
+[2025-12-05 21:02:49] Results directory: /home/shafin/repos/6.5840/benchmark_results/ALR_20251205_210249
+[2025-12-05 21:02:49] ==========================================
+[2025-12-05 21:02:49] >>> Phase 1: Write Ratio Performance Tests (5 replicas)
+[2025-12-05 21:02:49] Running benchmark: replicas5_writes0_clients5
+[2025-12-05 21:02:49]   Replicas: 5, Write Ratio: 0%, Duration: 30s
+=== RUN   TestRaftBenchmark
+    benchmark_custom_test.go:81: Starting Raft Benchmark:
+    benchmark_custom_test.go:82:   Replicas: 5
+    benchmark_custom_test.go:83:   Write Ratio: 0%
+    benchmark_custom_test.go:84:   Duration: 30s
+    benchmark_custom_test.go:85:   Clients: 5
+Test: many clients (Benchmark) (reliable network)...
+Results saved to: /home/shafin/repos/6.5840/benchmark_results/ALR_20251205_210249/replicas5_writes0_clients5.json
+    benchmark_custom_test.go:259: 
+        === Benchmark Results ===
+    benchmark_custom_test.go:260: Total Throughput: 135.89 ops/sec
+    benchmark_custom_test.go:261:   Get Throughput: 135.89 ops/sec (100.0%)
+    benchmark_custom_test.go:262:   Put Throughput: 0.00 ops/sec (0.0%)
+    benchmark_custom_test.go:263: 
+        Latency:
+    benchmark_custom_test.go:264:   Overall: Avg=36.74ms, P50=19.95ms, P95=110.03ms, P99=188.68ms
+    benchmark_custom_test.go:265:   Get:     Avg=36.74ms, P50=19.95ms, P95=110.03ms, P99=188.68ms
+    benchmark_custom_test.go:266:   Put:     Avg=0.00ms, P50=0.00ms, P95=0.00ms, P99=0.00ms
+    benchmark_custom_test.go:267: 
+        Success Rate: 100.00% (4085/4085)
+  ... Passed --  time 30.9s #peers 5 #RPCs 19512 #Ops    0
+--- PASS: TestRaftBenchmark (30.91s)
+PASS
+ok  	raft/kvraft1	30.912s
+[2025-12-05 21:03:20]   ✓ Benchmark completed successfully
+[2025-12-05 21:03:20] Running benchmark: replicas5_writes0_clients10
+[2025-12-05 21:03:20]   Replicas: 5, Write Ratio: 0%, Duration: 30s
+=== RUN   TestRaftBenchmark
+    benchmark_custom_test.go:81: Starting Raft Benchmark:
+    benchmark_custom_test.go:82:   Replicas: 5
+    benchmark_custom_test.go:83:   Write Ratio: 0%
+    benchmark_custom_test.go:84:   Duration: 30s
+    benchmark_custom_test.go:85:   Clients: 10
+Test: many clients (Benchmark) (reliable network)...
+Results saved to: /home/shafin/repos/6.5840/benchmark_results/ALR_20251205_210249/replicas5_writes0_clients10.json
+    benchmark_custom_test.go:259: 
+        === Benchmark Results ===
+    benchmark_custom_test.go:260: Total Throughput: 255.24 ops/sec
+    benchmark_custom_test.go:261:   Get Throughput: 255.24 ops/sec (100.0%)
+    benchmark_custom_test.go:262:   Put Throughput: 0.00 ops/sec (0.0%)
+    benchmark_custom_test.go:263: 
+        Latency:
+    benchmark_custom_test.go:264:   Overall: Avg=39.13ms, P50=28.11ms, P95=107.89ms, P99=158.09ms
+    benchmark_custom_test.go:265:   Get:     Avg=39.13ms, P50=28.11ms, P95=107.89ms, P99=158.09ms
+    benchmark_custom_test.go:266:   Put:     Avg=0.00ms, P50=0.00ms, P95=0.00ms, P99=0.00ms
+    benchmark_custom_test.go:267: 
+        Success Rate: 100.00% (7674/7674)
+  ... Passed --  time 30.9s #peers 5 #RPCs 27455 #Ops    0
+--- PASS: TestRaftBenchmark (30.90s)
+PASS
+ok  	raft/kvraft1	30.907s
+[2025-12-05 21:03:51]   ✓ Benchmark completed successfully
+[2025-12-05 21:03:51] Running benchmark: replicas5_writes0_clients20
+[2025-12-05 21:03:51]   Replicas: 5, Write Ratio: 0%, Duration: 30s
+=== RUN   TestRaftBenchmark
+    benchmark_custom_test.go:81: Starting Raft Benchmark:
+    benchmark_custom_test.go:82:   Replicas: 5
+    benchmark_custom_test.go:83:   Write Ratio: 0%
+    benchmark_custom_test.go:84:   Duration: 30s
+    benchmark_custom_test.go:85:   Clients: 20
+Test: many clients (Benchmark) (reliable network)...
+Results saved to: /home/shafin/repos/6.5840/benchmark_results/ALR_20251205_210249/replicas5_writes0_clients20.json
+    benchmark_custom_test.go:259: 
+        === Benchmark Results ===
+    benchmark_custom_test.go:260: Total Throughput: 477.07 ops/sec
+    benchmark_custom_test.go:261:   Get Throughput: 477.07 ops/sec (100.0%)
+    benchmark_custom_test.go:262:   Put Throughput: 0.00 ops/sec (0.0%)
+    benchmark_custom_test.go:263: 
+        Latency:
+    benchmark_custom_test.go:264:   Overall: Avg=41.82ms, P50=34.26ms, P95=104.74ms, P99=130.89ms
+    benchmark_custom_test.go:265:   Get:     Avg=41.82ms, P50=34.26ms, P95=104.74ms, P99=130.89ms
+    benchmark_custom_test.go:266:   Put:     Avg=0.00ms, P50=0.00ms, P95=0.00ms, P99=0.00ms
+    benchmark_custom_test.go:267: 
+        Success Rate: 100.00% (14366/14366)
+  ... Passed --  time 31.0s #peers 5 #RPCs 36261 #Ops    0
+--- PASS: TestRaftBenchmark (30.97s)
+PASS
+ok  	raft/kvraft1	30.982s
+[2025-12-05 21:04:22]   ✓ Benchmark completed successfully
+[2025-12-05 21:04:22] Running benchmark: replicas5_writes0_clients50
+[2025-12-05 21:04:22]   Replicas: 5, Write Ratio: 0%, Duration: 30s
+=== RUN   TestRaftBenchmark
+    benchmark_custom_test.go:81: Starting Raft Benchmark:
+    benchmark_custom_test.go:82:   Replicas: 5
+    benchmark_custom_test.go:83:   Write Ratio: 0%
+    benchmark_custom_test.go:84:   Duration: 30s
+    benchmark_custom_test.go:85:   Clients: 50
+Test: many clients (Benchmark) (reliable network)...
+Results saved to: /home/shafin/repos/6.5840/benchmark_results/ALR_20251205_210249/replicas5_writes0_clients50.json
+    benchmark_custom_test.go:259: 
+        === Benchmark Results ===
+    benchmark_custom_test.go:260: Total Throughput: 1167.97 ops/sec
+    benchmark_custom_test.go:261:   Get Throughput: 1167.97 ops/sec (100.0%)
+    benchmark_custom_test.go:262:   Put Throughput: 0.00 ops/sec (0.0%)
+    benchmark_custom_test.go:263: 
+        Latency:
+    benchmark_custom_test.go:264:   Overall: Avg=42.66ms, P50=37.28ms, P95=98.47ms, P99=120.95ms
+    benchmark_custom_test.go:265:   Get:     Avg=42.66ms, P50=37.28ms, P95=98.47ms, P99=120.95ms
+    benchmark_custom_test.go:266:   Put:     Avg=0.00ms, P50=0.00ms, P95=0.00ms, P99=0.00ms
+    benchmark_custom_test.go:267: 
+        Success Rate: 100.00% (35225/35225)
+  ... Passed --  time 31.0s #peers 5 #RPCs 58197 #Ops    0
+--- PASS: TestRaftBenchmark (31.02s)
+PASS
+ok  	raft/kvraft1	31.023s
+[2025-12-05 21:04:54]   ✓ Benchmark completed successfully
+[2025-12-05 21:04:54] Running benchmark: replicas5_writes0_clients100
+[2025-12-05 21:04:54]   Replicas: 5, Write Ratio: 0%, Duration: 30s
+=== RUN   TestRaftBenchmark
+    benchmark_custom_test.go:81: Starting Raft Benchmark:
+    benchmark_custom_test.go:82:   Replicas: 5
+    benchmark_custom_test.go:83:   Write Ratio: 0%
+    benchmark_custom_test.go:84:   Duration: 30s
+    benchmark_custom_test.go:85:   Clients: 100
+Test: many clients (Benchmark) (reliable network)...
+Results saved to: /home/shafin/repos/6.5840/benchmark_results/ALR_20251205_210249/replicas5_writes0_clients100.json
+    benchmark_custom_test.go:259: 
+        === Benchmark Results ===
+    benchmark_custom_test.go:260: Total Throughput: 2205.45 ops/sec
+    benchmark_custom_test.go:261:   Get Throughput: 2205.45 ops/sec (100.0%)
+    benchmark_custom_test.go:262:   Put Throughput: 0.00 ops/sec (0.0%)
+    benchmark_custom_test.go:263: 
+        Latency:
+    benchmark_custom_test.go:264:   Overall: Avg=45.14ms, P50=39.80ms, P95=101.24ms, P99=129.49ms
+    benchmark_custom_test.go:265:   Get:     Avg=45.14ms, P50=39.80ms, P95=101.24ms, P99=129.49ms
+    benchmark_custom_test.go:266:   Put:     Avg=0.00ms, P50=0.00ms, P95=0.00ms, P99=0.00ms
+    benchmark_custom_test.go:267: 
+        Success Rate: 100.00% (66581/66581)
+  ... Passed --  time 31.0s #peers 5 #RPCs 89070 #Ops    0
+--- PASS: TestRaftBenchmark (31.03s)
+PASS
+ok  	raft/kvraft1	31.040s
+[2025-12-05 21:05:25]   ✓ Benchmark completed successfully
+[2025-12-05 21:05:25] Running benchmark: replicas5_writes0_clients200
+[2025-12-05 21:05:25]   Replicas: 5, Write Ratio: 0%, Duration: 30s
+=== RUN   TestRaftBenchmark
+    benchmark_custom_test.go:81: Starting Raft Benchmark:
+    benchmark_custom_test.go:82:   Replicas: 5
+    benchmark_custom_test.go:83:   Write Ratio: 0%
+    benchmark_custom_test.go:84:   Duration: 30s
+    benchmark_custom_test.go:85:   Clients: 200
+Test: many clients (Benchmark) (reliable network)...
+Results saved to: /home/shafin/repos/6.5840/benchmark_results/ALR_20251205_210249/replicas5_writes0_clients200.json
+    benchmark_custom_test.go:259: 
+        === Benchmark Results ===
+    benchmark_custom_test.go:260: Total Throughput: 4201.99 ops/sec
+    benchmark_custom_test.go:261:   Get Throughput: 4201.99 ops/sec (100.0%)
+    benchmark_custom_test.go:262:   Put Throughput: 0.00 ops/sec (0.0%)
+    benchmark_custom_test.go:263: 
+        Latency:
+    benchmark_custom_test.go:264:   Overall: Avg=47.40ms, P50=40.47ms, P95=110.91ms, P99=157.69ms
+    benchmark_custom_test.go:265:   Get:     Avg=47.40ms, P50=40.47ms, P95=110.91ms, P99=157.69ms
+    benchmark_custom_test.go:266:   Put:     Avg=0.00ms, P50=0.00ms, P95=0.00ms, P99=0.00ms
+    benchmark_custom_test.go:267: 
+        Success Rate: 100.00% (126705/126705)
+  ... Passed --  time 31.0s #peers 5 #RPCs 148388 #Ops    0
+--- PASS: TestRaftBenchmark (31.04s)
+PASS
+ok  	raft/kvraft1	31.058s
+[2025-12-05 21:05:56]   ✓ Benchmark completed successfully
+[2025-12-05 21:05:56] Running benchmark: replicas5_writes0_clients500
+[2025-12-05 21:05:56]   Replicas: 5, Write Ratio: 0%, Duration: 30s
+=== RUN   TestRaftBenchmark
+    benchmark_custom_test.go:81: Starting Raft Benchmark:
+    benchmark_custom_test.go:82:   Replicas: 5
+    benchmark_custom_test.go:83:   Write Ratio: 0%
+    benchmark_custom_test.go:84:   Duration: 30s
+    benchmark_custom_test.go:85:   Clients: 500
+Test: many clients (Benchmark) (reliable network)...
+Results saved to: /home/shafin/repos/6.5840/benchmark_results/ALR_20251205_210249/replicas5_writes0_clients500.json
+    benchmark_custom_test.go:259: 
+        === Benchmark Results ===
+    benchmark_custom_test.go:260: Total Throughput: 9168.95 ops/sec
+    benchmark_custom_test.go:261:   Get Throughput: 9168.95 ops/sec (100.0%)
+    benchmark_custom_test.go:262:   Put Throughput: 0.00 ops/sec (0.0%)
+    benchmark_custom_test.go:263: 
+        Latency:
+    benchmark_custom_test.go:264:   Overall: Avg=54.45ms, P50=48.41ms, P95=116.13ms, P99=153.99ms
+    benchmark_custom_test.go:265:   Get:     Avg=54.45ms, P50=48.41ms, P95=116.13ms, P99=153.99ms
+    benchmark_custom_test.go:266:   Put:     Avg=0.00ms, P50=0.00ms, P95=0.00ms, P99=0.00ms
+    benchmark_custom_test.go:267: 
+        Success Rate: 100.00% (275740/275740)
+  ... Passed --  time 31.0s #peers 5 #RPCs 296564 #Ops    0
+--- PASS: TestRaftBenchmark (30.97s)
+PASS
+ok  	raft/kvraft1	30.993s
+[2025-12-05 21:06:28]   ✓ Benchmark completed successfully
+[2025-12-05 21:06:28] Running benchmark: replicas5_writes0_clients1000
+[2025-12-05 21:06:28]   Replicas: 5, Write Ratio: 0%, Duration: 30s
+=== RUN   TestRaftBenchmark
+    benchmark_custom_test.go:81: Starting Raft Benchmark:
+    benchmark_custom_test.go:82:   Replicas: 5
+    benchmark_custom_test.go:83:   Write Ratio: 0%
+    benchmark_custom_test.go:84:   Duration: 30s
+    benchmark_custom_test.go:85:   Clients: 1000
+Test: many clients (Benchmark) (reliable network)...
+Results saved to: /home/shafin/repos/6.5840/benchmark_results/ALR_20251205_210249/replicas5_writes0_clients1000.json
+    benchmark_custom_test.go:259: 
+        === Benchmark Results ===
+    benchmark_custom_test.go:260: Total Throughput: 13416.05 ops/sec
+    benchmark_custom_test.go:261:   Get Throughput: 13416.05 ops/sec (100.0%)
+    benchmark_custom_test.go:262:   Put Throughput: 0.00 ops/sec (0.0%)
+    benchmark_custom_test.go:263: 
+        Latency:
+    benchmark_custom_test.go:264:   Overall: Avg=74.29ms, P50=66.74ms, P95=151.93ms, P99=192.15ms
+    benchmark_custom_test.go:265:   Get:     Avg=74.29ms, P50=66.74ms, P95=151.93ms, P99=192.15ms
+    benchmark_custom_test.go:266:   Put:     Avg=0.00ms, P50=0.00ms, P95=0.00ms, P99=0.00ms
+    benchmark_custom_test.go:267: 
+        Success Rate: 100.00% (404204/404204)
+  ... Passed --  time 31.1s #peers 5 #RPCs 422008 #Ops    0
+--- PASS: TestRaftBenchmark (31.08s)
+PASS
+ok  	raft/kvraft1	31.115s
+[2025-12-05 21:06:59]   ✓ Benchmark completed successfully
+[2025-12-05 21:06:59] Running benchmark: replicas5_writes0_clients2000
+[2025-12-05 21:06:59]   Replicas: 5, Write Ratio: 0%, Duration: 30s
+=== RUN   TestRaftBenchmark
+    benchmark_custom_test.go:81: Starting Raft Benchmark:
+    benchmark_custom_test.go:82:   Replicas: 5
+    benchmark_custom_test.go:83:   Write Ratio: 0%
+    benchmark_custom_test.go:84:   Duration: 30s
+    benchmark_custom_test.go:85:   Clients: 2000
+Test: many clients (Benchmark) (reliable network)...
+Results saved to: /home/shafin/repos/6.5840/benchmark_results/ALR_20251205_210249/replicas5_writes0_clients2000.json
+    benchmark_custom_test.go:259: 
+        === Benchmark Results ===
+    benchmark_custom_test.go:260: Total Throughput: 19920.12 ops/sec
+    benchmark_custom_test.go:261:   Get Throughput: 19920.12 ops/sec (100.0%)
+    benchmark_custom_test.go:262:   Put Throughput: 0.00 ops/sec (0.0%)
+    benchmark_custom_test.go:263: 
+        Latency:
+    benchmark_custom_test.go:264:   Overall: Avg=99.79ms, P50=94.46ms, P95=190.45ms, P99=234.61ms
+    benchmark_custom_test.go:265:   Get:     Avg=99.77ms, P50=94.46ms, P95=190.45ms, P99=234.61ms
+    benchmark_custom_test.go:266:   Put:     Avg=0.00ms, P50=0.00ms, P95=0.00ms, P99=0.00ms
+    benchmark_custom_test.go:267: 
+        Success Rate: 100.00% (601369/601369)
+  ... Passed --  time 31.2s #peers 5 #RPCs 616831 #Ops    0
+--- PASS: TestRaftBenchmark (31.17s)
+PASS
+ok  	raft/kvraft1	31.221s
+[2025-12-05 21:07:30]   ✓ Benchmark completed successfully
+[2025-12-05 21:07:30] Running benchmark: replicas5_writes0_clients5000
+[2025-12-05 21:07:30]   Replicas: 5, Write Ratio: 0%, Duration: 30s
+=== RUN   TestRaftBenchmark
+    benchmark_custom_test.go:81: Starting Raft Benchmark:
+    benchmark_custom_test.go:82:   Replicas: 5
+    benchmark_custom_test.go:83:   Write Ratio: 0%
+    benchmark_custom_test.go:84:   Duration: 30s
+    benchmark_custom_test.go:85:   Clients: 5000
+Test: many clients (Benchmark) (reliable network)...
+Results saved to: /home/shafin/repos/6.5840/benchmark_results/ALR_20251205_210249/replicas5_writes0_clients5000.json
+    benchmark_custom_test.go:259: 
+        === Benchmark Results ===
+    benchmark_custom_test.go:260: Total Throughput: 22948.14 ops/sec
+    benchmark_custom_test.go:261:   Get Throughput: 22948.14 ops/sec (100.0%)
+    benchmark_custom_test.go:262:   Put Throughput: 0.00 ops/sec (0.0%)
+    benchmark_custom_test.go:263: 
+        Latency:
+    benchmark_custom_test.go:264:   Overall: Avg=216.43ms, P50=202.89ms, P95=399.19ms, P99=495.70ms
+    benchmark_custom_test.go:265:   Get:     Avg=216.31ms, P50=202.89ms, P95=399.19ms, P99=495.70ms
+    benchmark_custom_test.go:266:   Put:     Avg=0.00ms, P50=0.00ms, P95=0.00ms, P99=0.00ms
+    benchmark_custom_test.go:267: 
+        Success Rate: 100.00% (694192/694192)
+  ... Passed --  time 31.3s #peers 5 #RPCs 705841 #Ops    0
+--- PASS: TestRaftBenchmark (31.33s)
+PASS
+ok  	raft/kvraft1	31.399s
+[2025-12-05 21:08:02]   ✓ Benchmark completed successfully
+[2025-12-05 21:08:02] ==========================================
+[2025-12-05 21:08:02] Benchmark complete for version: ALR
+[2025-12-05 21:08:02] Results saved to: /home/shafin/repos/6.5840/benchmark_results/ALR_20251205_210249
+[2025-12-05 21:08:02] ==========================================

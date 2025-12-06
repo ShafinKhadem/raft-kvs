@@ -1,0 +1,11 @@
+{
+    "version": "ALR-leader-only",
+    "timestamp": "20251205_210913",
+    "benchmark_date": "2025-12-05T21:14:26-07:00",
+    "results_directory": "/home/shafin/repos/6.5840/benchmark_results/ALR-leader-only_20251205_210913",
+    "configuration": {
+        "write_ratios": [2,10,15,20,50,100],
+        "replica_counts": [3,5,7],
+        "duration_sec": 30
+    }
+}

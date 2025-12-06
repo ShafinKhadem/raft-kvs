@@ -286,12 +286,7 @@ func loadBenchmarkConfig() BenchmarkConfig {
 
 	var config BenchmarkConfig
 	if err := json.Unmarshal(data, &config); err != nil {
-		return BenchmarkConfig{
-			NumReplicas: 5,
-			WriteRatio:  10,
-			DurationSec: 30,
-			NumClients:  5,
-		}
+		panic(err)
 	}
 
 	return config

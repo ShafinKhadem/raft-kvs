@@ -1,0 +1,36 @@
+[2025-12-05 22:50:33] ==========================================
+[2025-12-05 22:50:33] Starting Raft Benchmark for: ALR
+[2025-12-05 22:50:33] Results directory: /home/shafin/repos/6.5840/benchmark_results/ALR_20251205_225033
+[2025-12-05 22:50:33] ==========================================
+[2025-12-05 22:50:33] >>> Phase 1: Write Ratio Performance Tests (5 replicas)
+[2025-12-05 22:50:33] Running benchmark: replicas5_writes0_clients4000
+[2025-12-05 22:50:33]   Replicas: 5, Write Ratio: 0%, Duration: 30s
+=== RUN   TestRaftBenchmark
+    benchmark_custom_test.go:81: Starting Raft Benchmark:
+    benchmark_custom_test.go:82:   Replicas: 5
+    benchmark_custom_test.go:83:   Write Ratio: 0%
+    benchmark_custom_test.go:84:   Duration: 30s
+    benchmark_custom_test.go:85:   Clients: 4000
+Test: many clients (Benchmark) (reliable network)...
+Results saved to: /home/shafin/repos/6.5840/benchmark_results/ALR_20251205_225033/replicas5_writes0_clients4000.json
+    benchmark_custom_test.go:259: 
+        === Benchmark Results ===
+    benchmark_custom_test.go:260: Total Throughput: 22792.69 ops/sec
+    benchmark_custom_test.go:261:   Get Throughput: 22792.69 ops/sec (100.0%)
+    benchmark_custom_test.go:262:   Put Throughput: 0.00 ops/sec (0.0%)
+    benchmark_custom_test.go:263: 
+        Latency:
+    benchmark_custom_test.go:264:   Overall: Avg=173.87ms, P50=164.70ms, P95=324.20ms, P99=396.48ms
+    benchmark_custom_test.go:265:   Get:     Avg=173.75ms, P50=164.70ms, P95=324.20ms, P99=396.48ms
+    benchmark_custom_test.go:266:   Put:     Avg=0.00ms, P50=0.00ms, P95=0.00ms, P99=0.00ms
+    benchmark_custom_test.go:267: 
+        Success Rate: 100.00% (690098/690098)
+  ... Passed --  time 31.3s #peers 5 #RPCs 702353 #Ops    0
+--- PASS: TestRaftBenchmark (31.33s)
+PASS
+ok  	raft/kvraft1	31.376s
+[2025-12-05 22:51:04]   ✓ Benchmark completed successfully
+[2025-12-05 22:51:04] ==========================================
+[2025-12-05 22:51:04] Benchmark complete for version: ALR
+[2025-12-05 22:51:04] Results saved to: /home/shafin/repos/6.5840/benchmark_results/ALR_20251205_225033
+[2025-12-05 22:51:04] ==========================================
