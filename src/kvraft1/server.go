@@ -81,6 +81,8 @@ func (kv *KVServer) DoOp(req any) any {
 					kv.syncVersion = rpc.Tversion(rand.Uint64())
 					// fmt.Println("server", kv.me, "processing get queue of length", queuelen, "with sync version", kv.syncVersion)
 					atomic.AddInt32(&kv.getQueueLen, -int32(queuelen))
+					var wg sync.WaitGroup
+					wg.Add(queuelen)
 					for i := 0; i < queuelen; i++ {
 						getOp := <-kv.getQueue
 						kv.opChsMu.Lock()
@@ -89,10 +91,14 @@ func (kv *KVServer) DoOp(req any) any {
 						if !ok {
 							panic("getCh not found")
 						}
-						getResult := kv.DoOp(getOp)
-						// fmt.Println("server", kv.me, "processed get for key", getOp.GetArgs.Key, "returning", getResult.(rpc.GetReply))
-						getCh <- getResult
+						go func() {
+							getResult := kv.DoOp(getOp)
+							// fmt.Println("server", kv.me, "processed get for key", getOp.GetArgs.Key, "returning", getResult.(rpc.GetReply))
+							getCh <- getResult
+							wg.Done()
+						}()
 					}
+					wg.Wait()
 				} else {
 					// Version mismatch, do not process
 					// fmt.Println("sync version mismatch:", expectedVersion, currentVersion)
