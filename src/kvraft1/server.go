@@ -25,7 +25,6 @@ type KVServer struct {
 	kv          map[string]string       // key -> value
 	versions    map[string]rpc.Tversion // key -> current version
 	syncVersion rpc.Tversion
-	syncCh      chan bool
 
 	getQueue    chan Op
 	getQueueLen int32
@@ -256,8 +255,11 @@ func StartKVServer(servers []*labrpc.ClientEnd, gid tester.Tgid, me int, persist
 					servers[leaderId].Call("KVServer.Put", &putargs, &reply)
 				}
 				if reply.Err == rpc.OK {
+					// The following busy wait sucks, but we have no choice - DoOp can't guaraqntee if this goroutine has received OK or not.
+					delay := 10
 					for kv.syncVersion == version {
-						time.Sleep(1 * time.Millisecond)
+						time.Sleep(10 * time.Millisecond)
+						delay = min(100, delay+delay) // Exponential backoff to avoid busy waiting too much
 					}
 				} else {
 					kv.mu.Lock()
